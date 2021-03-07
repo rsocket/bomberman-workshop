@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="manifest" href="/manifest.json">
+        <meta name="msapplication-TileColor" content="#ffffff">
+        <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="./src/main.css">
+        <title>Bombastic 4D</title>
+        <link href="https://fonts.googleapis.com/css?family=Asap:700|Carter+One|Fugaz+One&display=swap" rel="stylesheet">
+
+    </head>
+    <body style="margin:0">
+
+        <form id="reactions">
+            <button id ="you_suck_button" type="button">&#x1F621;</button>
+            <button id ="love_button" type="button">&#x1F496;</button>
+            <button id ="lol_button" type="button">&#x1F602;</button>
+        </form>
+
+        <form id="loginForm" >
+            <input type="text" id="lname" name="lname" placeholder="Enter your nickname" maxlength="20" minlength="1">
+            <input type="submit" value="Log in" id="login">
+        </form>
+
+        <div id="inventory">
+            <div id="lives">
+                <img src="images/spoilLife.png" alt="life" />
+                <div class="countBox">
+                    <p id="amountLives">0</p>
+                </div>
+            </div>
+
+            <div id="bombs">
+                <img  src="images/bomb_icon.png" alt="bomb" />
+                <div class="countBox">
+                    <p id="amountBombs">0</p>
+                </div>
+            </div>
+
+            <div id="walls">
+                <img src="images/wall.png" alt="wall" />
+                <div class="countBox">
+                    <p id="amountWalls">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="inventoryEnemy">
+
+        </div>
+
+        <div id="keys">
+            <div>
+                <p class="key">SPACE</p>
+                <p>set wall</p>
+            </div>
+            <div>
+                <p class="key">B</p>
+                <p>plant bomb</p>
+            </div>
+        </div>
+
+
+        <h1 class="title">BOMBASTIC 4D</h1>
+        <canvas id="myCanvas" width="520" height="520"></canvas>
+
+        <div id="echat">
+
+        </div>
+
+
+        <div id="gameOverScreen">
+            <p id="gameOverText">GAME OVER</p>
+        </div>
+
+        <div id="youwinscreen">
+            <p id="youwinText">YOU WIN!!!</p>
+        </div>
+
+        <script src="./dist/main.js"></script>
+
+    </body>
+</html>
