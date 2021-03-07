@@ -1,12 +1,25 @@
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOChannelInitializer;
-import com.corundumstudio.socketio.SocketIOServer;
-import io.netty.channel.Channel;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.rsocket.Payload;
+import io.rsocket.SocketAcceptor;
+import io.rsocket.core.RSocketServer;
+import io.rsocket.transport.netty.server.WebsocketServerTransport;
+import io.rsocket.util.DefaultPayload;
+import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 
 public class Game {
 
@@ -58,9 +71,9 @@ public class Game {
   //                                                   //
   //###################################################//
 
-  private final List<Player> positionPlayers = new ArrayList<>();
-  private List<Wall> positionWalls = new ArrayList<>();
-  private List<Item> positionItems = new ArrayList<>();
+  private final List<Player> positionPlayers = new CopyOnWriteArrayList<>();
+  private List<Wall> positionWalls = new CopyOnWriteArrayList<>();
+  private List<Item> positionItems = new CopyOnWriteArrayList<>();
   boolean server_overload = false;
 
   private static final class Wall {
@@ -106,7 +119,7 @@ public class Game {
    * creates wall objects and returns them
    */
   private static List<Wall> generateRandomWalls(int amount) {
-    var randomWalls = new ArrayList<Wall>();
+    var randomWalls = new CopyOnWriteArrayList<Wall>();
 
     // create grid of indestructible walls
     for (var i = 1; i < GAME_WIDTH - 1; i += 2) {
@@ -242,207 +255,245 @@ public class Game {
 
 
   private void start() {
-    Configuration config = new Configuration();
-    config.setHostname("localhost");
-    var sockConfig = new SocketConfig();
-    sockConfig.setReuseAddress(true);
-    config.setSocketConfig(sockConfig);
-    config.setHttpCompression(false);
-    config.setPort(9000);
+    var rsocketServer = RSocketServer //
+        .create(SocketAcceptor.forRequestChannel(in -> {
+          var out = Sinks.many().unicast().<Payload>onBackpressureBuffer();
+          allSinks.put(in, out);
+          AtomicReference<String> bigName = new AtomicReference<>();
+          Flux.from(in)
+              .doOnCancel(() -> {
+                System.out.println("OUT");
+              })
+              .subscribe(event -> {
+                try {
+                  var type = event.getMetadataUtf8();
+                  var metadata = mapper.readValue(event.getMetadataUtf8(), String.class);
+                  // out.emitNext(DefaultPayload.create(event.getDataUtf8(), event.getMetadataUtf8()), Sinks.EmitFailureHandler.FAIL_FAST);
+                  switch (metadata) {
+                    case "loginPlayer": {
+                      var data = mapper.readValue(event.getDataUtf8(), Map.class);
+                      // The id name of the player that was connected. Used to kick out
+                      // the player of the server at: "disconnect"
+                      String name = (String) data.get("id");
 
-    var server = new SocketIOServer(config);
-    server.setPipelineFactory(new SocketIOChannelInitializer() {
-      @Override
-      protected void initChannel(Channel ch) throws Exception {
-        super.initChannel(ch);
-        ch.pipeline().addBefore(AUTHORIZE_HANDLER, "fileServer", new FileServerHandler());
+                      var playerDetails = new Player(
+                          name,
+                          0,
+                          0,
+                          EAST,
+                          AMOUNT_BOMBS,
+                          AMOUNT_WALLS,
+                          HEALTH
+                      );
+
+                      bigName.set(name);
+
+                      switch (positionPlayers.size()) {
+                        case 0:
+                          positionWalls = generateRandomWalls(AMOUNT_RANDOM_WALLS);
+                          break;
+                        case 1:
+                          playerDetails.x = GAME_WIDTH - 1;
+                          playerDetails.y = 0;
+                          playerDetails.direction = SOUTH;
+                          break;
+                        case 2:
+                          playerDetails.x = GAME_WIDTH - 1;
+                          playerDetails.y = GAME_HEIGHT - 1;
+                          playerDetails.direction = WEST;
+                          break;
+                        case 3:
+                          playerDetails.x = 0;
+                          playerDetails.y = GAME_HEIGHT - 1;
+                          playerDetails.direction = NORTH;
+                          break;
+                        default:
+                          // TODO: apparently max capacity
+                          throw new RuntimeException("max capacity");
+                      }
+
+                      if ((!server_overload) && isNameUnique(name)) {
+
+                        // store incoming player
+                        positionPlayers.add(playerDetails);
+
+                        // create incoming player
+                        send(out, CREATE_PLAYER, playerDetails);
+
+                        // create rest of all currently attending player
+                        if (positionPlayers.size() > 0) {
+                          for (var i = 0; i < positionPlayers.size() - 1; i++) {
+                            send(out, CREATE_PLAYER, positionPlayers.get(i));
+                          }
+                        }
+
+                        // send all wall objects to client
+                        send(out, CREATE_WALLS, positionWalls);
+
+                        // send all items to client
+                        positionItems.forEach((item) -> {
+                          send(out, CREATE_ITEM, item);
+                        });
+
+                        // notify each client and send them new incoming player
+                        broadcast(in, CREATE_PLAYER, playerDetails);
+                      }
+                      break;
+                    }
+                    case REACTION: {
+                      var data = mapper.readValue(event.getDataUtf8(), Map.class);
+                      broadcast(in, REACTION, data);
+                      break;
+                    }
+                    case DELETE_WALL: {
+                      var data = mapper.readValue(event.getDataUtf8(), Map.class);
+                      var wallId = (String) data.get("wallId");
+                      positionWalls.removeIf(wall -> wall.wallId.equals(wallId));
+                      break;
+                    }
+                    case DELETE_PLAYER: {
+                      var data = mapper.readValue(event.getDataUtf8(), Map.class);
+                      positionPlayers.removeIf(player -> player.id.equals(data.get("id")));
+                      broadcast(in, DELETE_PLAYER, data);
+                      break;
+                    }
+                    case PLACE_WALL: {
+                      var data = mapper.readValue(event.getDataUtf8(), PlaceWallEvent.class);
+                      broadcast(in, PLACE_WALL, data);
+
+                      positionPlayers.forEach(player -> {
+                        if (player.id.equals(data.id)) {
+                          player.amountWalls = data.amountWalls;
+                        }
+                      });
+
+                      positionWalls.add(new Wall(data.wallId, data.x, data.y, true));
+                      break;
+                    }
+                    case CREATE_ITEM: {
+                      var data = mapper.readValue(event.getDataUtf8(), Item.class);
+                      broadcast(in, CREATE_ITEM, data);
+                      positionItems.add(data);
+                      break;
+                    }
+                    case PLACE_BOMB: {
+                      var data = mapper.readValue(event.getDataUtf8(), PlaceBombEvent.class);
+                      broadcast(in, PLACE_BOMB, data);
+                      positionPlayers.forEach(player -> {
+                        if (player.id.equals(data.id)) {
+                          player.amountBombs = data.amountBombs;
+                        }
+                      });
+                      break;
+                    }
+                    case MOVE_PLAYER: {
+                      var data = mapper.readValue(event.getDataUtf8(), MovePlayerEvent.class);
+                      broadcast(in, MOVE_PLAYER, data);
+
+                      positionPlayers.forEach(player -> {
+                        if (player.id.equals(data.id)) {
+                          player.x = data.x;
+                          player.y = data.y;
+                          player.direction = data.direction;
+
+                          var indexOfItem = -1;
+                          Item item = null;
+                          for (var i = 0; i < positionItems.size(); i++) {
+                            item = positionItems.get(i);
+
+                            if (item.position.x == data.x && item.position.y == data.y) {
+                              indexOfItem = i;
+                              break;
+                            }
+                          }
+
+                          if (indexOfItem >= 0) {
+                            splice(positionItems, indexOfItem, 1);
+                            var data2 = Map.of("item", item, "player", player);
+                            broadcast(null, GRAB_ITEM, data2);
+                          }
+                        }
+                      });
+                      break;
+                    }
+                    case UPDATE_INVENTORY: {
+                      var data = mapper.readValue(event.getDataUtf8(), UpdateInventoryEvent.class);
+                      broadcast(in, UPDATE_INVENTORY, data);
+
+                      positionPlayers.forEach(player -> {
+                        if (player.id.equals(data.id)) {
+                          player.amountBombs = data.amountBombs;
+                          player.amountWalls = data.amountWalls;
+                          player.health = data.health;
+                        }
+                      });
+                      break;
+                    }
+                    case HURT_PLAYER: {
+                      var data = mapper.readValue(event.getDataUtf8(), HurtPlayerEvent.class);
+                      broadcast(in, HURT_PLAYER,  data);
+                      positionPlayers.forEach(player -> {
+                        if (player.id.equals(data.id)) {
+                          player.health--;
+                        }
+                      });
+                    }
+                    case CHANGE_DIRECTION: {
+                      var data = mapper.readValue(event.getDataUtf8(), Map.class);
+                      broadcast(in, CHANGE_DIRECTION, data);
+                      positionPlayers.forEach(player -> {
+                        var id = (String) data.get("id");
+                        if (player.id.equals(id)) {
+                          player.direction = (String) data.get("direction");
+                        }
+                      });
+                      break;
+                    }
+                    default:
+                      System.out.println("got " + type);
+                  }
+                } catch (JsonProcessingException e) {
+                  System.err.println(e);
+                }
+              });
+          return out.asFlux()
+              .doOnCancel(() -> {
+                var name = bigName.get();
+                positionPlayers.removeIf(player -> player.id.equals(name));
+                broadcast(in, DELETE_PLAYER, new DeletePlayerEvent(name));
+                allSinks.remove(in);
+              });
+        }))
+        .bind(WebsocketServerTransport.create(9001))
+        .block();
+    System.out.println("rsocket started: " + rsocketServer.address());
+  }
+
+  private void send(Sinks.Many<Payload> out, String type, Object data) {
+    try {
+      var jsonData = mapper.writeValueAsString(data);
+      var jsonMeta = mapper.writeValueAsString(type);
+      out.emitNext(DefaultPayload.create(jsonData, jsonMeta), FAIL_FAST);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  ObjectMapper mapper = new ObjectMapper();
+  ConcurrentHashMap<Publisher<?>, Sinks.Many<Payload>> allSinks = new ConcurrentHashMap<>();
+
+  public void broadcast(Publisher<?> in, String type, Object data)  {
+    try {
+      var jsonData = mapper.writeValueAsString(data);
+      var jsonMeta = mapper.writeValueAsString(type);
+      for (Map.Entry<Publisher<?>, Sinks.Many<Payload>> entry : allSinks.entrySet()) {
+        if (entry.getKey() != in) {
+          entry.getValue().emitNext(DefaultPayload.create(jsonData, jsonMeta), FAIL_FAST);
+        }
       }
-    });
-
-    server.addConnectListener(client -> System.out.println("connected"));
-
-    server.addEventListener("loginPlayer", Map.class, (socket, data, ackSender) -> {
-      // The id name of the player that was connected. Used to kick out
-      // the player of the server at: "disconnect"
-      String name = (String) data.get("id");
-
-      var playerDetails = new Player(
-          name,
-          0,
-          0,
-          EAST,
-          AMOUNT_BOMBS,
-          AMOUNT_WALLS,
-          HEALTH
-      );
-
-      socket.set("name", name);
-
-      switch (positionPlayers.size()) {
-        case 0:
-          positionWalls = generateRandomWalls(AMOUNT_RANDOM_WALLS);
-          break;
-        case 1:
-          playerDetails.x = GAME_WIDTH - 1;
-          playerDetails.y = 0;
-          playerDetails.direction = SOUTH;
-          break;
-        case 2:
-          playerDetails.x = GAME_WIDTH - 1;
-          playerDetails.y = GAME_HEIGHT - 1;
-          playerDetails.direction = WEST;
-          break;
-        case 3:
-          playerDetails.x = 0;
-          playerDetails.y = GAME_HEIGHT - 1;
-          playerDetails.direction = NORTH;
-          break;
-        default:
-          // TODO: apparently max capacity
-          throw new RuntimeException("max capacity");
-      }
-
-      if ((!server_overload) && isNameUnique(name)) {
-
-        // store incoming player
-        positionPlayers.add(playerDetails);
-
-        // create incoming player
-        socket.sendEvent(CREATE_PLAYER, playerDetails);
-
-        // create rest of all currently attending player
-        if (positionPlayers.size() > 0) {
-          for (var i = 0; i < positionPlayers.size() - 1; i++) {
-            socket.sendEvent(CREATE_PLAYER, positionPlayers.get(i));
-          }
-        }
-
-        // send all wall objects to client
-        socket.sendEvent(CREATE_WALLS, positionWalls);
-
-        // send all items to client
-        positionItems.forEach((item) -> {
-          socket.sendEvent(CREATE_ITEM, item);
-        });
-
-        // notify each client and send them new incoming player
-        server.getBroadcastOperations().sendEvent(CREATE_PLAYER, socket, playerDetails);
-      }
-    });
-
-    /**
-     * broadcast new direction change to each client
-     * @param data = {id: STRING, direction: STRING}
-     */
-    server.addEventListener(CHANGE_DIRECTION, Map.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(CHANGE_DIRECTION, socket, data);
-      positionPlayers.forEach(player -> {
-        var id = (String) data.get("id");
-        if (player.id.equals(id)) {
-          player.direction = (String) data.get("direction");
-        }
-      });
-    });
-
-    server.addDisconnectListener(socket -> {
-      var name = (String) socket.get("name");
-      positionPlayers.removeIf(player -> player.id.equals(name));
-      server.getBroadcastOperations().sendEvent(DELETE_PLAYER, socket, new DeletePlayerEvent(name));
-    });
-
-    server.addEventListener(HURT_PLAYER, HurtPlayerEvent.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(HURT_PLAYER, socket, data);
-      positionPlayers.forEach(player -> {
-        if (player.id.equals(data.id)) {
-          player.health--;
-        }
-      });
-    });
-
-    server.addEventListener(MOVE_PLAYER, MovePlayerEvent.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(MOVE_PLAYER, socket, data);
-
-      positionPlayers.forEach(player -> {
-        if (player.id.equals(data.id)) {
-          player.x = data.x;
-          player.y = data.y;
-          player.direction = data.direction;
-
-          var indexOfItem = -1;
-          Item item = null;
-          for (var i = 0; i < positionItems.size(); i++) {
-            item = positionItems.get(i);
-
-            if (item.position.x == data.x && item.position.y == data.y) {
-              indexOfItem = i;
-              break;
-            }
-          }
-
-          if (indexOfItem >= 0) {
-            splice(positionItems, indexOfItem, 1);
-            var data2 = Map.of("item", item, "player", player);
-            server.getBroadcastOperations().sendEvent(GRAB_ITEM, socket, data2);
-            socket.sendEvent(GRAB_ITEM, data2);
-          }
-        }
-      });
-    });
-
-    server.addEventListener(PLACE_BOMB, PlaceBombEvent.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(PLACE_BOMB, socket, data);
-      positionPlayers.forEach(player -> {
-        if (player.id.equals(data.id)) {
-          player.amountBombs = data.amountBombs;
-        }
-      });
-    });
-
-    server.addEventListener(CREATE_ITEM, Item.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(CREATE_ITEM, socket, data);
-      positionItems.add(data);
-    });
-
-    server.addEventListener(PLACE_WALL, PlaceWallEvent.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(PLACE_WALL, socket, data);
-
-      positionPlayers.forEach(player -> {
-        if (player.id.equals(data.id)) {
-          player.amountWalls = data.amountWalls;
-        }
-      });
-
-
-      positionWalls.add(new Wall(data.wallId, data.x, data.y, true));
-    });
-
-    server.addEventListener(DELETE_PLAYER, Map.class, (socket, data, ackSender) -> {
-      positionPlayers.removeIf(player -> player.id.equals(data.get("id")));
-      server.getBroadcastOperations().sendEvent(DELETE_PLAYER, socket, data);
-    });
-
-    server.addEventListener(DELETE_WALL, Map.class, (socket, data, ackSender) -> {
-      var wallId = (String)data.get("wallId");
-      positionWalls.removeIf(wall -> wall.wallId.equals(wallId));
-    });
-
-    server.addEventListener(REACTION, Map.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(REACTION, socket, socket, data);
-    });
-
-    server.addEventListener(UPDATE_INVENTORY, UpdateInventoryEvent.class, (socket, data, ackSender) -> {
-      server.getBroadcastOperations().sendEvent(UPDATE_INVENTORY, socket, data);
-
-      positionPlayers.forEach(player -> {
-        if (player.id.equals(data.id)) {
-          player.amountBombs = data.amountBombs;
-          player.amountWalls = data.amountWalls;
-          player.health = data.health;
-        }
-      });
-    });
-
-    server.start();
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private boolean isNameUnique(String name) {

@@ -4,7 +4,6 @@ import Bomb from "./Bomb.js";
 import Player from './Player.js';
 import Item from './Item.js';
 import Wall from './Wall.js';
-import io from "socket.io-client";
 import {
     CHANGE_DIRECTION,
     MOVE_PLAYER,
@@ -31,6 +30,10 @@ import {
     SPOILMUSIC,
     WINNERMUSIC,
 } from "./constant.js";
+import {JsonSerializers, RSocketClient} from "rsocket-core";
+import RSocketWebSocketClient from "rsocket-websocket-client";
+import {ConnectionStatus, ISubscription, Payload, ReactiveSocket} from "rsocket-types";
+import {Flowable} from "rsocket-flowable";
 
 
 export default class Game {
@@ -59,13 +62,6 @@ export default class Game {
 
         // background music plays when game starts
         this.playMusic(BACKGROUNDMUSIC);
-
-        // set up socket connection
-        this.socket = io.connect('http://localhost:9000');
-
-        // send notification to server in order to create your player
-        this.socket.emit(LOGIN_PLAYER, { id: this.id });
-
 
 
         // disable input
@@ -98,61 +94,63 @@ export default class Game {
 //                                                   //
 //###################################################//
 
-        this.socket.on(REACTION, (data) => {
+        this.callbacks = {};
+
+        this.on(REACTION, (data) => {
             this.drawReaction(data);
         });
 
         // after logging in your player, the server will send you all generated walls
-        this.socket.on(CREATE_WALLS, (walls) => {
+        this.on(CREATE_WALLS, (walls) => {
             walls.forEach(wall => {
                 let position = {x: wall.x, y: wall.y};
                 this.walls.push(new Wall(position, 1, wall.isDestructible, assets, 40, wall.wallId));
             });
         });
 
-        this.socket.on(CREATE_PLAYER, (data) => {
+        this.on(CREATE_PLAYER, (data) => {
             this.pushPlayer(data);
         });
 
-        this.socket.on(HURT_PLAYER, (data) => {
+        this.on(HURT_PLAYER, (data) => {
             this.hurtPlayer(data);
         });
 
         // receive direction changes
-        this.socket.on(CHANGE_DIRECTION, (data) => {
+        this.on(CHANGE_DIRECTION, (data) => {
             this.changeDirection(data)
         });
 
         // receive enemy player movements
-        this.socket.on(MOVE_PLAYER, (data) => {
+        this.on(MOVE_PLAYER, (data) => {
             this.moveEnemy(data);
         });
 
         // player grabbed item
-        this.socket.on(GRAB_ITEM, (data) => {
+        this.on(GRAB_ITEM, (data) => {
             this.pickUpItem(data);
         });
 
         // receive bombs set by enemies
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.socket.on(PLACE_BOMB, (data) => {
+        this.on(PLACE_BOMB, (data) => {
             this.receiveBomb(data);
         });
 
         // receive items created by exploding walls
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.socket.on(CREATE_ITEM, (data) => {
+        this.on(CREATE_ITEM, (data) => {
             this.receiveItem(data);
         });
 
         // receive walls set by enemies
-        this.socket.on(PLACE_WALL, (data) => {
+        this.on(PLACE_WALL, (data) => {
             this.receiveWall(data);
         });
 
         // update enemy inventory
         // {id: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
-        this.socket.on(UPDATE_INVENTORY, (data) => {
+        this.on(UPDATE_INVENTORY, (data) => {
             if (data.id !== this.id) {
                 try {
                     document.getElementById(data.id + 'BombText').innerText = data.amountBombs;
@@ -165,16 +163,89 @@ export default class Game {
         });
 
         // update remaining players
-        this.socket.on(DELETE_PLAYER, (data) => {
+        this.on(DELETE_PLAYER, (data) => {
             this.deletePlayer(data);
         });
 
 
 
 
+        this.initRsocket();
         // START GAME
         this.startAnimating();
     }
+
+
+    on(type, callback) {
+        this.callbacks[type] = callback;
+    }
+
+    async initRsocket() {
+        console.log("HALLO!")
+        const callbacks = this.callbacks;
+        const [wsClient, rsocket] = await this.connect();
+        rsocket.requestChannel(new Flowable(subscriber => {
+            console.log("subscribing")
+            subscriber.onSubscribe({
+                request(n) {
+                    console.log("requested " + n)
+                                    },
+                cancel() {
+                    console.log("cancelled")
+                }
+            });
+            this.rsocketEmit = (type, data) => {
+                subscriber.onNext({
+                    metadata: type,
+                    data: data
+                })
+            };
+            this.emit(LOGIN_PLAYER, { id: this.id });
+        }))
+            .subscribe({
+                onSubscribe(s) {
+                    s.request(2147483642)
+                },
+                onNext(t) {
+                    console.log("got: " + t.metadata)
+                    callbacks[t.metadata](t.data);
+                },
+                onError(err) {
+                    console.error(err);
+                },
+                onComplete() {
+                    console.log("complete?")
+                }
+            })
+        wsClient.connectionStatus().subscribe({
+            onSubscribe(s) {
+                s.request(2147483642);
+            },
+            onNext(t) {
+                console.log("status: " + t.kind)
+            }
+        })
+
+
+    }
+
+    async connect() {
+        console.log("connecting")
+        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9001'});
+        const socketClient = new RSocketClient({
+            serializers: JsonSerializers,
+            setup: {
+                dataMimeType: 'text/plain',
+                metadataMimeType: 'text/plain',
+                keepAlive: 30000,
+                lifetime: 90000,
+            },
+            transport: wsClient,
+        });
+        const rsocket = await socketClient.connect();
+        return [wsClient, rsocket];
+    }
+
 
 
 
@@ -191,39 +262,44 @@ export default class Game {
      * all broadcast functions are being evoked by Player.js
      */
     broadcastReaction(reaction) {
-        this.socket.emit(REACTION, {id:this.id, reaction: reaction});
+        this.emit(REACTION, {id:this.id, reaction: reaction});
     }
 
     broadcastPosition(position) {
-        this.socket.emit(MOVE_PLAYER, position);
+        this.emit(MOVE_PLAYER, position);
     }
 
     broadcastDirection(direction) {
-        this.socket.emit(CHANGE_DIRECTION, direction);
+        this.emit(CHANGE_DIRECTION, direction);
     }
 
     broadcastWall(wall) {
-        this.socket.emit(PLACE_WALL, wall);
+        this.emit(PLACE_WALL, wall);
     }
 
     broadcastBomb(bomb) {
-        this.socket.emit(PLACE_BOMB, bomb);
+        this.emit(PLACE_BOMB, bomb);
     }
 
     broadcastItem(item) {
-        this.socket.emit(CREATE_ITEM, item);
+        this.emit(CREATE_ITEM, item);
     }
 
     broadcastDestroyedWall(wall) {
-        this.socket.emit(DELETE_WALL, {wallId: wall.wallId});
+        this.emit(DELETE_WALL, {wallId: wall.wallId});
     }
 
     broadcastDeletedPlayer(player) {
-        this.socket.emit(DELETE_PLAYER, player);
+        this.emit(DELETE_PLAYER, player);
     }
 
     broadcastInventory(state) {
-        this.socket.emit(UPDATE_INVENTORY ,state);
+        this.emit(UPDATE_INVENTORY ,state);
+    }
+
+
+    emit(type, data) {
+        this.rsocketEmit(type, data)
     }
 
 
