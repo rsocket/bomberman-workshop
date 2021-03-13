@@ -7,6 +7,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.reactive.config.EnableWebFlux;
+import org.springframework.web.reactive.config.ResourceHandlerRegistry;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -21,7 +24,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 import static xyz.bomberman.Event.*;
-import static xyz.bomberman.GameController.*;
+import static xyz.bomberman.EventController.*;
 
 @SpringBootApplication
 public class Application {
@@ -32,7 +35,7 @@ public class Application {
 }
 
 @Controller
-class GameController {
+class EventController {
 
   private static final int GAME_WIDTH = 13;
   private static final int GAME_HEIGHT = 13;

@@ -6,12 +6,10 @@ https://docs.google.com/document/d/1C9X0YAVkcr6XwkClcIb6iR9uPv7EG-oShJvHaqfmSh4/
 ## Running
 
 ```bash
-cd web
-npm install
-node server & 
-yarn build
-
-# Start Game#main
+# Start Server
+./gradlew bootRun
+# Start Web
+cd src/main/resources/static && yarn build
 ```
 
 

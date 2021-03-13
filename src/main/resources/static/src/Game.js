@@ -233,7 +233,7 @@ export default class Game {
 
     async connect() {
         console.log("connecting")
-        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9001/rsocket'});
+        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9000/rsocket'});
         const socketClient = new RSocketClient({
             serializers: {
                 data: JsonSerializer,
