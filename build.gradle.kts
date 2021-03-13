@@ -4,7 +4,7 @@ plugins {
     java
 }
 
-group = "org.example"
+group = "xyz.bomberman"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -15,7 +15,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
 
-    // implementation("org.slf4j:slf4j-simple:1.7.30")
     implementation("io.rsocket:rsocket-core:1.1.0")
     implementation("io.rsocket:rsocket-transport-netty:1.1.0")
 

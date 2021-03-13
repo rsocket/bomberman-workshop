@@ -50,7 +50,7 @@ class GameController {
   }
 
 
-  ConcurrentHashMap<Publisher<?>, Sinks.Many<Event>> allSinks = new ConcurrentHashMap<>();
+  ConcurrentHashMap<Publisher<?>, Sinks.Many<Event>> playerSinks = new ConcurrentHashMap<>();
   // TODO: not thread safe
   private final List<Player> positionPlayers = new CopyOnWriteArrayList<>();
   private List<Wall> positionWalls = new CopyOnWriteArrayList<>();
@@ -177,8 +177,7 @@ class GameController {
   @MessageMapping("events")
   public Flux<Event> events(Flux<Event> in) {
     var out = Sinks.many().unicast().<Event>onBackpressureBuffer();
-    allSinks.put(in, out);
-    AtomicReference<String> bigName = new AtomicReference<>();
+    var currentPlayer = new AtomicReference<Player>();
 
     Flux.from(in)
         .doOnCancel(() -> {
@@ -189,7 +188,7 @@ class GameController {
             case LOGIN_PLAYER: {
               var data = (Event.LoginPlayerEvent) event;
               var name = data.id;
-              var playerDetails = new Player(
+              var player = new Player(
                   name,
                   0,
                   0,
@@ -199,26 +198,27 @@ class GameController {
                   HEALTH
               );
 
-              bigName.set(name);
+              currentPlayer.set(player);
+              playerSinks.put(in, out);
 
               switch (positionPlayers.size()) {
                 case 0:
                   positionWalls = generateRandomWalls(AMOUNT_RANDOM_WALLS);
                   break;
                 case 1:
-                  playerDetails.x = GAME_WIDTH - 1;
-                  playerDetails.y = 0;
-                  playerDetails.direction = Direction.SOUTH;
+                  player.x = GAME_WIDTH - 1;
+                  player.y = 0;
+                  player.direction = Direction.SOUTH;
                   break;
                 case 2:
-                  playerDetails.x = GAME_WIDTH - 1;
-                  playerDetails.y = GAME_HEIGHT - 1;
-                  playerDetails.direction = Direction.WEST;
+                  player.x = GAME_WIDTH - 1;
+                  player.y = GAME_HEIGHT - 1;
+                  player.direction = Direction.WEST;
                   break;
                 case 3:
-                  playerDetails.x = 0;
-                  playerDetails.y = GAME_HEIGHT - 1;
-                  playerDetails.direction = Direction.NORTH;
+                  player.x = 0;
+                  player.y = GAME_HEIGHT - 1;
+                  player.direction = Direction.NORTH;
                   break;
                 default:
                   throw new IllegalArgumentException("serve is at max capacity");
@@ -230,10 +230,10 @@ class GameController {
 
 
               // store incoming player
-              positionPlayers.add(playerDetails);
+              positionPlayers.add(player);
 
               // create incoming player
-              send(out, new Event.CreatePlayerEvent(playerDetails));
+              send(out, new Event.CreatePlayerEvent(player));
 
               // create rest of all currently attending player
               if (positionPlayers.size() > 0) {
@@ -251,7 +251,7 @@ class GameController {
               });
 
               // notify each client and send them new incoming player
-              broadcast(in, new Event.CreatePlayerEvent(playerDetails));
+              broadcast(in, new Event.CreatePlayerEvent(player));
               break;
             }
             case REACTION: {
@@ -372,10 +372,10 @@ class GameController {
 
     return out.asFlux()
         .doOnCancel(() -> {
-          var name = bigName.get();
-          positionPlayers.removeIf(player -> player.id.equals(name));
-          broadcast(in, new Event.DeletePlayerEvent(name));
-          allSinks.remove(in);
+          var current = currentPlayer.get();
+          positionPlayers.removeIf(player -> player.id.equals(current.id));
+          broadcast(in, new Event.DeletePlayerEvent(current.id));
+          playerSinks.remove(current);
         });
   }
 
@@ -384,7 +384,7 @@ class GameController {
   }
 
   public void broadcast(Publisher<?> in, Event event) {
-    for (var entry : allSinks.entrySet()) {
+    for (var entry : playerSinks.entrySet()) {
       if (entry.getKey() != in) {
         entry.getValue().emitNext(event, FAIL_FAST);
       }
