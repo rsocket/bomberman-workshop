@@ -30,7 +30,7 @@ import {
     SPOILMUSIC,
     WINNERMUSIC,
 } from "./constant.js";
-import {JsonSerializers, RSocketClient} from "rsocket-core";
+import {IdentitySerializer, JsonSerializer, JsonSerializers, RSocketClient} from "rsocket-core";
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import {ConnectionStatus, ISubscription, Payload, ReactiveSocket} from "rsocket-types";
 import {Flowable} from "rsocket-flowable";
@@ -101,7 +101,8 @@ export default class Game {
         });
 
         // after logging in your player, the server will send you all generated walls
-        this.on(CREATE_WALLS, (walls) => {
+        this.on(CREATE_WALLS, (wallEvent) => {
+            const walls = wallEvent.walls;
             walls.forEach(wall => {
                 let position = {x: wall.x, y: wall.y};
                 this.walls.push(new Wall(position, 1, wall.isDestructible, assets, 40, wall.wallId));
@@ -189,15 +190,15 @@ export default class Game {
             subscriber.onSubscribe({
                 request(n) {
                     console.log("requested " + n)
-                                    },
+                },
                 cancel() {
                     console.log("cancelled")
                 }
             });
             this.rsocketEmit = (type, data) => {
                 subscriber.onNext({
-                    metadata: type,
-                    data: data
+                    metadata: String.fromCharCode('events'.length) + 'events',
+                    data: Object.assign(data, {eventType: type})
                 })
             };
             this.emit(LOGIN_PLAYER, { id: this.id });
@@ -207,8 +208,9 @@ export default class Game {
                     s.request(2147483642)
                 },
                 onNext(t) {
-                    console.log("got: " + t.metadata)
-                    callbacks[t.metadata](t.data);
+                    const type = t.data.eventType;
+                    console.log("got: " + type)
+                    callbacks[type](t.data);
                 },
                 onError(err) {
                     console.error(err);
@@ -231,14 +233,17 @@ export default class Game {
 
     async connect() {
         console.log("connecting")
-        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9001'});
+        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9001/rsocket'});
         const socketClient = new RSocketClient({
-            serializers: JsonSerializers,
+            serializers: {
+                data: JsonSerializer,
+                metadata: IdentitySerializer
+            },
             setup: {
-                dataMimeType: 'text/plain',
-                metadataMimeType: 'text/plain',
                 keepAlive: 30000,
                 lifetime: 90000,
+                dataMimeType: 'application/json',
+                metadataMimeType: 'message/x.rsocket.routing.v0',
             },
             transport: wsClient,
         });

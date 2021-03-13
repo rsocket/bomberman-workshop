@@ -1,0 +1,10 @@
+server:
+    port: 9001
+logging:
+  level:
+    root: DEBUG
+spring:
+  rsocket:
+    server:
+      mapping-path: /rsocket
+      transport: websocket
