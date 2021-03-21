@@ -18,5 +18,7 @@ dependencies {
     implementation("io.rsocket:rsocket-core:1.1.0")
     implementation("io.rsocket:rsocket-transport-netty:1.1.0")
 
+    implementation("io.micrometer:micrometer-registry-prometheus:1.6.5")
+
     testImplementation("junit", "junit", "4.12")
 }
