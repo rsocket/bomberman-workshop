@@ -5,13 +5,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.reactivestreams.Publisher;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.reactive.config.EnableWebFlux;
-import org.springframework.web.reactive.config.ResourceHandlerRegistry;
-import org.springframework.web.reactive.config.WebFluxConfigurer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
+import xyz.bomberman.metrics.Metrics;
+import xyz.bomberman.metrics.MetricsConnectionInterceptor;
+import xyz.bomberman.metrics.MetricsResponderInterceptor;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +33,14 @@ public class Application {
   public static void main(String[] args) {
     var app = new SpringApplication(Application.class);
     app.run(args);
+  }
+
+  @Bean
+  RSocketServerCustomizer springSecurityRSocketSecurity() {
+    return (server) -> server.interceptors(registry -> { //
+      registry.forConnection(new MetricsConnectionInterceptor(Metrics.REGISTRY));
+      registry.forResponder(new MetricsResponderInterceptor(Metrics.REGISTRY));
+    });
   }
 }
 

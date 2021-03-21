@@ -5,7 +5,7 @@
 ```java
 .interceptors(registry -> {
   registry.forConnection(new MetricsRsConnectionInterceptor(Metrics.REGISTRY));
-  registry.forResponder(new MetricsRsResponderInterceptor(Metrics.REGISTRY));
+  registry.forResponder(new MetricsResponderInterceptor(Metrics.REGISTRY));
 }) //
 ```
 
@@ -17,5 +17,6 @@ docker compose up
 open http://localhost:3000 # admin/admin
 ```
 
+![demo](./demo.png)
 
 

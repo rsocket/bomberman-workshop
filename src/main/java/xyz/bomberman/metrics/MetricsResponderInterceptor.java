@@ -13,12 +13,12 @@ import reactor.core.publisher.SignalType;
 
 import java.util.function.Supplier;
 
-public class MetricsRsResponderInterceptor implements RSocketInterceptor {
+public class MetricsResponderInterceptor implements RSocketInterceptor {
 
   private final Timer channelTimer;
   private final TaggedCounter signalCounter;
 
-  public MetricsRsResponderInterceptor(MeterRegistry registry) {
+  public MetricsResponderInterceptor(MeterRegistry registry) {
     this.signalCounter = new TaggedCounter("xyz.bomberman.signals", registry);
     this.channelTimer = registry.timer("xyz.bomberman.channel.timer");
   }
