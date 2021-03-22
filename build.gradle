@@ -1,0 +1,14 @@
+group = "xyz.bomberman"
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+    maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+    }
+}
