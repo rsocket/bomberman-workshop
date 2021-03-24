@@ -9,7 +9,9 @@ https://docs.google.com/document/d/1C9X0YAVkcr6XwkClcIb6iR9uPv7EG-oShJvHaqfmSh4/
 # Start Server
 ./gradlew bootRun
 # Start Web
-cd src/main/resources/static && yarn build
+cd game-service/src/main/resources/static 
+yarn install
+yarn build
 ```
 
 

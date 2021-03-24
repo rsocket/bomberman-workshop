@@ -9,7 +9,6 @@ import io.rsocket.plugins.RSocketInterceptor;
 import io.rsocket.util.RSocketProxy;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.SignalType;
 
 import java.util.function.Supplier;
 

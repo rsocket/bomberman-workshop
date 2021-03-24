@@ -1,0 +1,4 @@
+rootProject.name = "bomberman-workshop"
+
+include "game-service"
+//include "discavery-service"
