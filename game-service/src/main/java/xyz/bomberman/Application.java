@@ -15,7 +15,6 @@ public class Application {
     app.run(args);
   }
 
-
   @Bean
   RSocketServerCustomizer rSocketServerCustomizer() {
     return (server) -> server.interceptors(registry -> { //

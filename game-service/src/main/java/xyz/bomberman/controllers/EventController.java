@@ -1,18 +1,16 @@
 package xyz.bomberman.controllers;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.reactivestreams.Publisher;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-import xyz.bomberman.metrics.MetricsConnectionInterceptor;
-import xyz.bomberman.metrics.MetricsResponderInterceptor;
+
 import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 import static xyz.bomberman.controllers.dto.Event.CHANGE_DIRECTION;
 import static xyz.bomberman.controllers.dto.Event.CREATE_ITEM;
@@ -32,16 +30,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
-import org.reactivestreams.Publisher;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
+
 import reactor.core.publisher.Sinks.Many;
 import xyz.bomberman.controllers.dto.Event;
 
 @Controller
 public class EventController {
+
+  @GetMapping("/game")
+  ResponseEntity<Resource> game(@Value("classpath:/static/index.html") Resource page) {
+    return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
+  }
 
   static class Direction {
     private static final String EAST = "east";

@@ -8,3 +8,10 @@ spring:
     server:
       mapping-path: /rsocket
       transport: websocket
+  web:
+    resources:
+      chain:
+        cache: false
+      static-locations:
+        - 'file:game-service/src/main/resources/static/'
+        - 'classpath:/static/'
