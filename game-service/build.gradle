@@ -21,3 +21,12 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task yarnBuild {
+    exec {
+        workingDir './src/main/resources/static'
+        commandLine 'yarn', 'build'
+    }
+}
+
+task stage(dependsOn: ['yarnBuild', 'bootJar'])
