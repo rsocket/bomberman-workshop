@@ -30,7 +30,8 @@
     "rsocket-types": "^0.0.25",
     "rsocket-websocket-client": "^0.0.25",
     "shortid": "^2.2.14",
-    "uniqid": "^5.0.3"
+    "uniqid": "^5.0.3",
+    "unique-names-generator": "^4.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.13.10",

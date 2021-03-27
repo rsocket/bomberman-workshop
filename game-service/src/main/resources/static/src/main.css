@@ -213,6 +213,21 @@ input {
   margin-top: 15px;
 }
 
+.rooms {
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+}
+
+.room {
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+  border-radius: 4px;
+  height: 40px;
+  margin: 10px;
+  text-align: left;
+  float: left;
+}
+
 button {
   border: 2px solid #024873;
   font-family: "Carter One", cursive;

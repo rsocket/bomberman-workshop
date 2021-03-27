@@ -5,34 +5,32 @@ import Player from './Player.js';
 import Item from './Item.js';
 import Wall from './Wall.js';
 import {
+    BACKGROUNDMUSIC,
+    BOMBMUSIC,
     CHANGE_DIRECTION,
+    CREATE_ITEM,
+    CREATE_PLAYER,
+    CREATE_WALLS,
+    DELETE_PLAYER,
+    DELETE_WALL,
+    DIEDMUSIC,
+    GRAB_ITEM,
+    HURT_PLAYER,
+    ITEM_EXTRA_BOMB,
+    ITEM_EXTRA_LIFE,
+    ITEM_RUN_FASTER,
+    LOGIN_PLAYER,
+    LOSERMUSIC,
     MOVE_PLAYER,
     PLACE_BOMB,
     PLACE_WALL,
-    DELETE_WALL,
-    CREATE_PLAYER,
-    LOGIN_PLAYER,
-    CREATE_WALLS,
-    DELETE_PLAYER,
-    CREATE_ITEM,
-    GRAB_ITEM,
-    ITEM_EXTRA_LIFE,
-    ITEM_EXTRA_BOMB,
-    ITEM_RUN_FASTER,
-    HURT_PLAYER,
-    UPDATE_INVENTORY,
     REACTION,
-    BACKGROUNDMUSIC,
-    BOMBMUSIC,
-    DIEDMUSIC,
-    LOSERMUSIC,
     SETBOMBMUSIC,
     SPOILMUSIC,
+    UPDATE_INVENTORY,
     WINNERMUSIC,
 } from "./constant.js";
-import {IdentitySerializer, JsonSerializer, JsonSerializers, RSocketClient} from "rsocket-core";
-import RSocketWebSocketClient from "rsocket-websocket-client";
-import {ConnectionStatus, ISubscription, Payload, ReactiveSocket} from "rsocket-types";
+import {connect} from "./RSocket.js"
 import {Flowable} from "rsocket-flowable";
 
 
@@ -182,9 +180,8 @@ export default class Game {
     }
 
     async initRsocket() {
-        console.log("HALLO!")
         const callbacks = this.callbacks;
-        const [wsClient, rsocket] = await this.connect();
+        const [wsClient, rsocket] = await connect();
         rsocket.requestChannel(new Flowable(subscriber => {
             console.log("subscribing")
             subscriber.onSubscribe({
@@ -227,30 +224,7 @@ export default class Game {
                 console.log("status: " + t.kind)
             }
         })
-
-
     }
-
-    async connect() {
-        console.log("connecting")
-        let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9000/rsocket'});
-        const socketClient = new RSocketClient({
-            serializers: {
-                data: JsonSerializer,
-                metadata: IdentitySerializer
-            },
-            setup: {
-                keepAlive: 30000,
-                lifetime: 90000,
-                dataMimeType: 'application/json',
-                metadataMimeType: 'message/x.rsocket.routing.v0',
-            },
-            transport: wsClient,
-        });
-        const rsocket = await socketClient.connect();
-        return [wsClient, rsocket];
-    }
-
 
 
 
