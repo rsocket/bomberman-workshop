@@ -1,5 +1,8 @@
 {
   "scripts": {
     "build": "cd game-service/src/main/resources/static && yarn install && yarn build"
+  },
+  "engines": {
+    "yarn": "1.x"
   }
 }
