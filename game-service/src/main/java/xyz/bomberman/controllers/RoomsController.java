@@ -36,9 +36,11 @@ public class RoomsController {
   }
 
   @MessageMapping("createGame")
-  public Room createGame(@Payload User user) {
-    var room = new Room();
-    room.users.add(user.id);
+  public Room createGame(@Payload Map<String, String> createRequest) {
+    var userId = createRequest.get("userId");
+    var gameId = createRequest.get("gameId");
+    var room = new Room(gameId);
+    room.users.add(userId);
     roomsService.create(room);
     return room;
   }

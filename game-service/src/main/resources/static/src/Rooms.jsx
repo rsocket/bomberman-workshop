@@ -4,6 +4,7 @@ import '@babel/polyfill'
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {connect} from "./RSocket.js"
+import {adjectives, colors} from "unique-names-generator";
 
 const {uniqueNamesGenerator, animals} = require('unique-names-generator');
 
@@ -64,9 +65,13 @@ function Rooms() {
 
     function createGame() {
         const rSocket = socket.current;
+        const gameId = uniqueNamesGenerator({
+            dictionaries: [adjectives, colors],
+            length: 2,
+        });
         rSocket.requestResponse({
             metadata: String.fromCharCode('createGame'.length) + 'createGame',
-            data: {id: userName}
+            data: {userId: userName, gameId: gameId}
         }).subscribe()
     }
 
