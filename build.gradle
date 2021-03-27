@@ -12,3 +12,5 @@ subprojects {
         maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
     }
 }
+
+task stage(dependsOn: ['yarn', 'clean'])

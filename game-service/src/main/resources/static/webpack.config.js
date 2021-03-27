@@ -3,7 +3,6 @@ const path = require('path');
 module.exports = [
 {
 	mode: 'development',
-	watch: true,
 	entry: ["@babel/polyfill", './src/App.js'],
 	output: {
 		path: path.resolve(__dirname, 'dist'),
@@ -29,7 +28,6 @@ module.exports = [
 },
 {
 	mode: 'development',
-	watch: true,
 	entry: ["@babel/polyfill", './src/Rooms.jsx'],
 	output: {
 		path: path.resolve(__dirname, 'dist'),

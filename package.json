@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build": "cd game-service/src/main/resources/static && yarn install && yarn build"
+  }
+}

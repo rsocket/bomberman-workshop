@@ -11,7 +11,7 @@ https://docs.google.com/document/d/1C9X0YAVkcr6XwkClcIb6iR9uPv7EG-oShJvHaqfmSh4/
 # Start Web
 cd game-service/src/main/resources/static 
 yarn install
-yarn build
+yarn watch
 ```
 
 
