@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import xyz.bomberman.controllers.dto.Room;
-import xyz.bomberman.users.User;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -16,6 +15,12 @@ public class RoomsService {
 
   private final ConcurrentMap<String, Room> allRooms = new ConcurrentHashMap<>();
   private final Sinks.Many<Room> roomUpdates = Sinks.many().multicast().onBackpressureBuffer(256, false);
+
+  private final GameService gameService;
+
+  public RoomsService(GameService gameService) {
+    this.gameService = gameService;
+  }
 
   public void join(String roomId, String user) {
     var room = allRooms.get(roomId);
@@ -41,6 +46,7 @@ public class RoomsService {
 
   public void start(String gameId, String userId) {
     var room = allRooms.get(gameId);
+    gameService.startGame(room);
     room.started = true;
     roomUpdates.emitNext(room, FAIL_FAST);
   }

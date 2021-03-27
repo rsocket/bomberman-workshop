@@ -53,6 +53,7 @@ public class Event {
   public static class LoginPlayerEvent extends Event {
 
     public String id;
+    public String gameId;
 
     public LoginPlayerEvent() {
       super(LOGIN_PLAYER);

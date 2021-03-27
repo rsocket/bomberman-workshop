@@ -198,7 +198,9 @@ export default class Game {
                     data: Object.assign(data, {eventType: type})
                 })
             };
-            this.emit(LOGIN_PLAYER, { id: this.id });
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('id');
+            this.emit(LOGIN_PLAYER, { id: this.id, gameId: gameId });
         }))
             .subscribe({
                 onSubscribe(s) {

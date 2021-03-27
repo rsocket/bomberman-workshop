@@ -99,7 +99,12 @@ new AssetLoader()
             }
         });
 
-
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        if (username) {
+            document.querySelector("#lname").setAttribute("value", username);
+            document.querySelector("#login").click()
+        }
 
     }).catch(err => {
         console.log(err);

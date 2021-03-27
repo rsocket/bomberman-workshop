@@ -31,7 +31,7 @@ function Rooms() {
                 console.log(t);
                 // check if the game has started and you're in the game
                 if (room.started && room.users.includes(userName)) {
-                    window.location.href = '/game?id=' + room.id;
+                    window.location.href = `/game?id=${room.id}&username=${userName}`;
                 }
                 // update all displayed rooms
                 setRooms(rooms => {
