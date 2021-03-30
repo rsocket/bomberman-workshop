@@ -3,7 +3,10 @@ import {IdentitySerializer, JsonSerializer, RSocketClient} from "rsocket-core";
 
 export async function connect() {
     console.log("connecting")
-    let wsClient = new RSocketWebSocketClient({url: 'ws://localhost:9000/rsocket'});
+    const isSecure = window.location.protocol === 'https:'
+    let wsClient = new RSocketWebSocketClient({
+        url: `${isSecure ? 'wss' : 'ws'}://${window.location.hostname}:9000/rsocket`
+    });
     const socketClient = new RSocketClient({
         serializers: {
             data: JsonSerializer,
