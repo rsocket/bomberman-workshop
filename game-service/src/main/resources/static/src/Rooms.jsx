@@ -120,7 +120,7 @@ function Rooms() {
                                     <button onClick={() => leaveGame(room.id)}>Leave</button>
                                     <button onClick={() => startGame(room.id)}>Start</button>
                                 </div>
-                                : (inAGame
+                                : (inAGame || room.users.length >= 4
                                     ? <div/>
                                     : <button onClick={() => joinGame(room.id)}>Join</button>)
                             }
