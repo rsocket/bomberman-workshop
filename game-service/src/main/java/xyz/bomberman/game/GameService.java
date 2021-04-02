@@ -1,20 +1,24 @@
 package xyz.bomberman.game;
 
 import org.springframework.stereotype.Component;
-import xyz.bomberman.controllers.EventController;
 import xyz.bomberman.controllers.dto.Room;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-
-import static xyz.bomberman.controllers.EventController.*;
 
 @Component
 public class GameService {
+  private static final int GAME_WIDTH = 13;
+  private static final int GAME_HEIGHT = 13;
+
+  private static final List<Position> INITIAL_POSITIONS = List.of( //
+      new Position(0, 0), new Position(GAME_WIDTH - 1, 0),
+      new Position(0, GAME_HEIGHT - 1), new Position(GAME_WIDTH - 1, GAME_HEIGHT - 1)
+  );
 
   private static final int AMOUNT_RANDOM_WALLS = 55;
   private static final int AMOUNT_BOMBS = 30;
@@ -24,67 +28,52 @@ public class GameService {
   private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();
 
   public void startGame(Room room) {
-    var game = new Game();
-    game.positionWalls = generateRandomWalls(AMOUNT_RANDOM_WALLS);
 
-    List<String> users = room.users;
+    var walls = generateRandomWalls();
+    var players = generatePlayers(room.users);
+    var game = new Game(walls, players);
+
+    games.put(room.id, game);
+  }
+
+  private List<Player> generatePlayers(List<String> users) {
+    var players = new ArrayList<Player>();
     for (int i = 0, usersSize = users.size(); i < usersSize; i++) {
       String user = users.get(i);
-      var player = new EventController.Player(
+      var position = INITIAL_POSITIONS.get(i);
+      var player = new Player(
           user,
-          0,
-          0,
-          EventController.Direction.EAST,
+          position.x,
+          position.y,
+          Directions.ALL.get(i),
           AMOUNT_BOMBS,
           AMOUNT_WALLS,
           HEALTH
       );
-      switch (i) {
-        case 0:
-          break;
-        case 1:
-          player.x = GAME_WIDTH - 1;
-          player.y = 0;
-          player.direction = EventController.Direction.SOUTH;
-          break;
-        case 2:
-          player.x = GAME_WIDTH - 1;
-          player.y = GAME_HEIGHT - 1;
-          player.direction = EventController.Direction.WEST;
-          break;
-        case 3:
-          player.x = 0;
-          player.y = GAME_HEIGHT - 1;
-          player.direction = EventController.Direction.NORTH;
-          break;
-        default:
-          throw new IllegalArgumentException("serve is at max capacity");
-      }
-      game.positionPlayers.add(player);
+      players.add(player);
     }
-
-    games.put(room.id, game);
+    return players;
   }
 
   public Game findGame(String roomId) {
     return games.get(roomId);
   }
 
-  private static List<EventController.Wall> generateRandomWalls(int amount) {
-    var randomWalls = new CopyOnWriteArrayList<EventController.Wall>();
+  private static List<Wall> generateRandomWalls() {
+    var randomWalls = new ArrayList<Wall>();
 
     // create grid of indestructible walls
     for (var i = 1; i < GAME_WIDTH - 1; i += 2) {
       for (var j = 1; j < GAME_HEIGHT - 1; j += 2) {
-        randomWalls.add(new EventController.Wall(UUID.randomUUID().toString(), i, j, false));
+        randomWalls.add(new Wall(UUID.randomUUID().toString(), i, j, false));
       }
     }
 
     // create random destructible walls
-    for (var i = 0; i < amount; i++) {
+    for (var i = 0; i < GameService.AMOUNT_RANDOM_WALLS; i++) {
 
       // generate random coordinates every loop
-      var atRandomPosition = new EventController.Position(
+      var atRandomPosition = new Position(
           ThreadLocalRandom.current().nextInt(GAME_WIDTH),
           ThreadLocalRandom.current().nextInt(GAME_HEIGHT));
 
@@ -93,7 +82,7 @@ public class GameService {
         i--;
       } else {
         // if not, generate an unique ID and push object into positionWalls
-        randomWalls.add(new EventController.Wall(UUID.randomUUID().toString(), atRandomPosition.x,
+        randomWalls.add(new Wall(UUID.randomUUID().toString(), atRandomPosition.x,
             atRandomPosition.y, true));
       }
     }
@@ -101,9 +90,8 @@ public class GameService {
     return randomWalls;
   }
 
-  private static boolean isAlreadyExisting(List<EventController.Wall> walls,
-                                           EventController.Position position) {
-    for (EventController.Wall wall : walls) {
+  private static boolean isAlreadyExisting(List<Wall> walls, Position position) {
+    for (Wall wall : walls) {
       if (position.x == wall.x && position.y == wall.y) {
         return true;
       }
@@ -126,7 +114,7 @@ public class GameService {
     return false;
   }
 
-  public EventController.Player findPlayer(Game game, String name) {
+  public Player findPlayer(Game game, String name) {
     return game.positionPlayers.stream().filter(p -> p.id.equals(name)).findAny().get();
   }
 }

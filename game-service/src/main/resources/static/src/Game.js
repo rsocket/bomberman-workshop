@@ -182,6 +182,7 @@ export default class Game {
     async initRsocket() {
         const callbacks = this.callbacks;
         const [wsClient, rsocket] = await connect();
+        const self = this;
         rsocket.requestChannel(new Flowable(subscriber => {
             console.log("subscribing")
             subscriber.onSubscribe({
@@ -213,6 +214,7 @@ export default class Game {
                 },
                 onError(err) {
                     console.error(err);
+                    self.deletePlayer({id: self.id});
                 },
                 onComplete() {
                     console.log("complete?")
@@ -341,7 +343,7 @@ export default class Game {
             }
         }
 
-        if (data.id === this.id) {
+        if (data.id === this.id || !this.id) {
             this.playMusic(LOSERMUSIC);
             try {
                 document.getElementById("inventory").style.display = "none";

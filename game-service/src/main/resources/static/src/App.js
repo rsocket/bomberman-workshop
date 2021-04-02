@@ -108,7 +108,7 @@ new AssetLoader()
 
     }).catch(err => {
         console.log(err);
-        window.open(`http://stackoverflow.com/search?q=[js]+${err}`);
+        // window.open(`http://stackoverflow.com/search?q=[js]+${err}`);
         //window.location.href = "http://stackoverflow.com/search?q=[js]+" + err;
 });
 

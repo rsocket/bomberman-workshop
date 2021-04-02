@@ -65,37 +65,37 @@ function Rooms() {
 
     function createGame() {
         const rSocket = socket.current;
-        const gameId = uniqueNamesGenerator({
+        const roomId = uniqueNamesGenerator({
             dictionaries: [adjectives, colors],
             length: 2,
         });
         rSocket.requestResponse({
             metadata: String.fromCharCode('createGame'.length) + 'createGame',
-            data: {userId: userName, gameId: gameId}
+            data: {userId: userName, roomId: roomId}
         }).subscribe()
     }
 
-    function joinGame(gameId) {
+    function joinGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
             metadata: String.fromCharCode('joinGame'.length) + 'joinGame',
-            data: {userId: userName, gameId: gameId}
+            data: {userId: userName, roomId: roomId}
         }).subscribe()
     }
 
-    function leaveGame(gameId) {
+    function leaveGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
             metadata: String.fromCharCode('leaveGame'.length) + 'leaveGame',
-            data: {userId: userName, gameId: gameId}
+            data: {userId: userName, roomId: roomId}
         }).subscribe()
     }
 
-    function startGame(gameId) {
+    function startGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
             metadata: String.fromCharCode('startGame'.length) + 'startGame',
-            data: {gameId: gameId}
+            data: {roomId: roomId}
         }).subscribe()
     }
 

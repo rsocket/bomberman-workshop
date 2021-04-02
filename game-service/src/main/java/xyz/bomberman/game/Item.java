@@ -1,10 +1,11 @@
 package xyz.bomberman.game;
 
-import lombok.Value;
-
-@Value
 public class Item {
+  public Position position;
+  public String type;
 
-  Position position;
-  String type;
+  public Item(Position position, String type) {
+    this.position = position;
+    this.type = type;
+  }
 }

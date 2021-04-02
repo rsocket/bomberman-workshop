@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
 import xyz.bomberman.controllers.dto.Room;
+import xyz.bomberman.controllers.dto.RoomMember;
 import xyz.bomberman.controllers.dto.User;
 import xyz.bomberman.game.RoomsService;
 
@@ -36,9 +37,9 @@ public class RoomsController {
   }
 
   @MessageMapping("createGame")
-  public Room createGame(@Payload Map<String, String> createRequest) {
-    var userId = createRequest.get("userId");
-    var gameId = createRequest.get("gameId");
+  public Room createGame(@Payload RoomMember createRequest) {
+    var userId = createRequest.userId;
+    var gameId = createRequest.roomId;
     var room = new Room(gameId);
     room.users.add(userId);
     roomsService.create(room);
@@ -46,23 +47,23 @@ public class RoomsController {
   }
 
   @MessageMapping("joinGame")
-  public void joinGame(@Payload Map<String, String> joinRequest) {
-    var userId = joinRequest.get("userId");
-    var gameId = joinRequest.get("gameId");
+  public void joinGame(@Payload RoomMember joinRequest) {
+    var userId = joinRequest.userId;
+    var gameId = joinRequest.roomId;
     roomsService.join(gameId, userId);
   }
 
   @MessageMapping("leaveGame")
-  public void leaveGame(@Payload Map<String, String> leaveRequest) {
-    var userId = leaveRequest.get("userId");
-    var gameId = leaveRequest.get("gameId");
+  public void leaveGame(@Payload RoomMember leaveRequest) {
+    var userId = leaveRequest.userId;
+    var gameId = leaveRequest.roomId;
     roomsService.leave(gameId, userId);
   }
 
   @MessageMapping("startGame")
-  public void startGame(@Payload Map<String, String> startRequest) {
-    var userId = startRequest.get("userId");
-    var gameId = startRequest.get("gameId");
+  public void startGame(@Payload RoomMember startRequest) {
+    var userId = startRequest.userId;
+    var gameId = startRequest.roomId;
     roomsService.start(gameId, userId);
   }
 }

@@ -6,10 +6,10 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.List;
-import xyz.bomberman.controllers.EventController.Item;
-import xyz.bomberman.controllers.EventController.Player;
-import xyz.bomberman.controllers.EventController.Position;
-import xyz.bomberman.controllers.EventController.Wall;
+import xyz.bomberman.game.Item;
+import xyz.bomberman.game.Player;
+import xyz.bomberman.game.Position;
+import xyz.bomberman.game.Wall;
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "eventType", visible = true)
 @JsonSubTypes({
