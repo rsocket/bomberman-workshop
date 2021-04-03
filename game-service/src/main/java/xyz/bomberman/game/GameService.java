@@ -1,7 +1,6 @@
 package xyz.bomberman.game;
 
 import org.springframework.stereotype.Component;
-import xyz.bomberman.controllers.dto.Room;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ public class GameService {
 
   private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();
 
-  public void startGame(Room room) {
+  public void startGame(LocalRoom room) {
 
     var walls = generateRandomWalls();
     var players = generatePlayers(room.users);
