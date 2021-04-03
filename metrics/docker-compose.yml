@@ -18,5 +18,7 @@ services:
     container_name: grafana
     volumes:
       - ./datasources:/etc/grafana/provisioning/datasources
+      - ./dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana-dashboard:/var/lib/grafana/dashboards
     ports:
       - 3000:3000

@@ -10,6 +10,7 @@ import xyz.bomberman.controllers.dto.Event;
 
 public class Game {
   public ConcurrentHashMap<Publisher<?>, Sinks.Many<Event>> playerSinks = new ConcurrentHashMap<>();
+
   public final List<Player> positionPlayers;
   public final List<Item> positionItems;
   public List<Wall> positionWalls;

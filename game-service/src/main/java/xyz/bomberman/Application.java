@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
 import org.springframework.context.annotation.Bean;
-import reactor.netty.Metrics;
+import xyz.bomberman.metrics.Metrics;
 import xyz.bomberman.metrics.MetricsConnectionInterceptor;
 import xyz.bomberman.metrics.MetricsResponderInterceptor;
 

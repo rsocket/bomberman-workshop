@@ -1,5 +1,12 @@
 # Metrics
 
+## Start
+
+```bash
+docker compose up
+open "http://localhost:3000/" # admin/admin
+```
+
 ## Reporter
 
 ```java
