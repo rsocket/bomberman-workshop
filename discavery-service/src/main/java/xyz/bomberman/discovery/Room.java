@@ -1,4 +1,4 @@
-package xyz.bomberman.game;
+package xyz.bomberman.discovery;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

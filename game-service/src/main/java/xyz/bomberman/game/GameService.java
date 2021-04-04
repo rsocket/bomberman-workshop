@@ -26,7 +26,7 @@ public class GameService {
 
   private final ConcurrentMap<String, Game> games = new ConcurrentHashMap<>();
 
-  public void startGame(LocalRoom room) {
+  public void startGame(Room room) {
 
     var walls = generateRandomWalls();
     var players = generatePlayers(room.users);

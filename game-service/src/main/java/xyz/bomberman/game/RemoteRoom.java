@@ -3,7 +3,7 @@ package xyz.bomberman.game;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import reactor.core.publisher.Mono;
 
-public class RemoteRoom implements Room {
+public class RemoteRoom /* implements Room */ {
 
   final RSocketRequester remoteServiceRequester;
 
@@ -11,12 +11,12 @@ public class RemoteRoom implements Room {
     this.remoteServiceRequester = remoteServiceRequester;
   }
 
-  @Override
+//  @Override
   public Mono<Void> start() {
     return null;
   }
 
-  @Override
+//  @Override
   public Mono<Void> join(String user) {
     return null;
   }

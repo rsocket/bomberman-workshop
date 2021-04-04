@@ -1,5 +1,6 @@
 package xyz.bomberman.controllers;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -9,7 +10,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
-import xyz.bomberman.game.LocalRoom;
+import xyz.bomberman.game.Room;
 import xyz.bomberman.controllers.dto.RoomMember;
 import xyz.bomberman.controllers.dto.User;
 import xyz.bomberman.game.RoomsService;
@@ -19,7 +20,10 @@ public class RoomsController {
 
   private final RoomsService roomsService;
 
-  public RoomsController(RoomsService roomsService) {
+  public RoomsController(
+//      @Qualifier("localRoomService") RoomsService roomsService
+      @Qualifier("remoteRoomService") RoomsService roomsService
+  ) {
     this.roomsService = roomsService;
   }
 
@@ -29,16 +33,16 @@ public class RoomsController {
   }
 
   @MessageMapping("rooms")
-  public Flux<LocalRoom> rooms(@Payload User user) {
+  public Flux<Room> rooms(@Payload User user) {
     return roomsService.findActiveRooms()
         .doOnCancel(() -> roomsService.leaveAll(user.id));
   }
 
   @MessageMapping("createGame")
-  public LocalRoom createGame(@Payload RoomMember createRequest) {
+  public Room createGame(@Payload RoomMember createRequest) {
     var userId = createRequest.userId;
     var gameId = createRequest.roomId;
-    var room = new LocalRoom(gameId);
+    var room = new Room(gameId);
     room.users.add(userId);
     roomsService.create(room);
     return room;
