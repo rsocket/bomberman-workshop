@@ -1,4 +1,4 @@
-namespace xyz.bomberman.player.data;
+namespace xyz.bomberman.game.data;
 
 enum EventType:byte {
   Reaction = 0,
