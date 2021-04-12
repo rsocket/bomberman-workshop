@@ -28,74 +28,42 @@ xyz.bomberman.game.data = xyz.bomberman.game.data || {};
  * @enum {number}
  */
 xyz.bomberman.game.data.EventType = {
-  Reaction: 0,
-  DeleteWall: 1,
-  DeletePlayer: 2,
-  PlaceWall: 3,
-  CreateItem: 4,
-  PlaceBomb: 5,
-  MovePlayer: 6,
-  UpdateInventory: 7,
+  NONE: 0,
+  Login: 1,
+  CreatePlayer: 2,
+  CreateItem: 3,
+  CreateWall: 4,
+  Reaction: 5,
+  ChangeDirection: 6,
+  GrabItem: 7,
   HurtPlayer: 8,
-  ChangeDirection: 9
+  MovePlayer: 9,
+  DeletePlayer: 10,
+  PlaceBomb: 11,
+  UpdateInventory: 12,
+  PlaceWall: 13,
+  DeleteWall: 14
 };
 
 /**
  * @enum {string}
  */
 xyz.bomberman.game.data.EventTypeName = {
-  '0': 'Reaction',
-  '1': 'DeleteWall',
-  '2': 'DeletePlayer',
-  '3': 'PlaceWall',
-  '4': 'CreateItem',
-  '5': 'PlaceBomb',
-  '6': 'MovePlayer',
-  '7': 'UpdateInventory',
-  '8': 'HurtPlayer',
-  '9': 'ChangeDirection'
-};
-
-/**
- * @enum {number}
- */
-xyz.bomberman.game.data.Event = {
-  NONE: 0,
-  LoginPlayerEvent: 1,
-  CreatePlayerEvent: 2,
-  CreateWallEvent: 3,
-  CreateItemEvent: 4,
-  ChangeDirectionEvent: 5,
-  GrabItemEvent: 6,
-  HurtPlayerEvent: 7,
-  MovePlayerEvent: 8,
-  PlaceBombEvent: 9,
-  UpdateInventoryEvent: 10,
-  DeleteWallEvent: 11,
-  PlaceWallEvent: 12,
-  ReactionEvent: 13,
-  DeletePlayerEvent: 14
-};
-
-/**
- * @enum {string}
- */
-xyz.bomberman.game.data.EventName = {
   '0': 'NONE',
-  '1': 'LoginPlayerEvent',
-  '2': 'CreatePlayerEvent',
-  '3': 'CreateWallEvent',
-  '4': 'CreateItemEvent',
-  '5': 'ChangeDirectionEvent',
-  '6': 'GrabItemEvent',
-  '7': 'HurtPlayerEvent',
-  '8': 'MovePlayerEvent',
-  '9': 'PlaceBombEvent',
-  '10': 'UpdateInventoryEvent',
-  '11': 'DeleteWallEvent',
-  '12': 'PlaceWallEvent',
-  '13': 'ReactionEvent',
-  '14': 'DeletePlayerEvent'
+  '1': 'Login',
+  '2': 'CreatePlayer',
+  '3': 'CreateItem',
+  '4': 'CreateWall',
+  '5': 'Reaction',
+  '6': 'ChangeDirection',
+  '7': 'GrabItem',
+  '8': 'HurtPlayer',
+  '9': 'MovePlayer',
+  '10': 'DeletePlayer',
+  '11': 'PlaceBomb',
+  '12': 'UpdateInventory',
+  '13': 'PlaceWall',
+  '14': 'DeleteWall'
 };
 
 /**
@@ -2660,40 +2628,17 @@ xyz.bomberman.game.data.GameEvent.getSizePrefixedRootAsGameEvent = function(bb, 
 /**
  * @returns {xyz.bomberman.game.data.EventType}
  */
-xyz.bomberman.game.data.GameEvent.prototype.type = function() {
+xyz.bomberman.game.data.GameEvent.prototype.eventType = function() {
   var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? /** @type {xyz.bomberman.game.data.EventType} */ (this.bb.readInt8(this.bb_pos + offset)) : xyz.bomberman.game.data.EventType.Reaction;
-};
-
-/**
- * @param {xyz.bomberman.game.data.EventType} value
- * @returns {boolean}
- */
-xyz.bomberman.game.data.GameEvent.prototype.mutate_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-
-  if (offset === 0) {
-    return false;
-  }
-
-  this.bb.writeInt8(this.bb_pos + offset, value);
-  return true;
-};
-
-/**
- * @returns {xyz.bomberman.game.data.Event}
- */
-xyz.bomberman.game.data.GameEvent.prototype.dataType = function() {
-  var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? /** @type {xyz.bomberman.game.data.Event} */ (this.bb.readUint8(this.bb_pos + offset)) : xyz.bomberman.game.data.Event.NONE;
+  return offset ? /** @type {xyz.bomberman.game.data.EventType} */ (this.bb.readUint8(this.bb_pos + offset)) : xyz.bomberman.game.data.EventType.NONE;
 };
 
 /**
  * @param {flatbuffers.Table} obj
  * @returns {?flatbuffers.Table}
  */
-xyz.bomberman.game.data.GameEvent.prototype.data = function(obj) {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+xyz.bomberman.game.data.GameEvent.prototype.event = function(obj) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
   return offset ? this.bb.__union(obj, this.bb_pos + offset) : null;
 };
 
@@ -2701,31 +2646,23 @@ xyz.bomberman.game.data.GameEvent.prototype.data = function(obj) {
  * @param {flatbuffers.Builder} builder
  */
 xyz.bomberman.game.data.GameEvent.startGameEvent = function(builder) {
-  builder.startObject(3);
+  builder.startObject(2);
 };
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {xyz.bomberman.game.data.EventType} type
+ * @param {xyz.bomberman.game.data.EventType} eventType
  */
-xyz.bomberman.game.data.GameEvent.addType = function(builder, type) {
-  builder.addFieldInt8(0, type, xyz.bomberman.game.data.EventType.Reaction);
+xyz.bomberman.game.data.GameEvent.addEventType = function(builder, eventType) {
+  builder.addFieldInt8(0, eventType, xyz.bomberman.game.data.EventType.NONE);
 };
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {xyz.bomberman.game.data.Event} dataType
+ * @param {flatbuffers.Offset} eventOffset
  */
-xyz.bomberman.game.data.GameEvent.addDataType = function(builder, dataType) {
-  builder.addFieldInt8(1, dataType, xyz.bomberman.game.data.Event.NONE);
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} dataOffset
- */
-xyz.bomberman.game.data.GameEvent.addData = function(builder, dataOffset) {
-  builder.addFieldOffset(2, dataOffset, 0);
+xyz.bomberman.game.data.GameEvent.addEvent = function(builder, eventOffset) {
+  builder.addFieldOffset(1, eventOffset, 0);
 };
 
 /**
@@ -2755,16 +2692,14 @@ xyz.bomberman.game.data.GameEvent.finishSizePrefixedGameEventBuffer = function(b
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {xyz.bomberman.game.data.EventType} type
- * @param {xyz.bomberman.game.data.Event} dataType
- * @param {flatbuffers.Offset} dataOffset
+ * @param {xyz.bomberman.game.data.EventType} eventType
+ * @param {flatbuffers.Offset} eventOffset
  * @returns {flatbuffers.Offset}
  */
-xyz.bomberman.game.data.GameEvent.createGameEvent = function(builder, type, dataType, dataOffset) {
+xyz.bomberman.game.data.GameEvent.createGameEvent = function(builder, eventType, eventOffset) {
   xyz.bomberman.game.data.GameEvent.startGameEvent(builder);
-  xyz.bomberman.game.data.GameEvent.addType(builder, type);
-  xyz.bomberman.game.data.GameEvent.addDataType(builder, dataType);
-  xyz.bomberman.game.data.GameEvent.addData(builder, dataOffset);
+  xyz.bomberman.game.data.GameEvent.addEventType(builder, eventType);
+  xyz.bomberman.game.data.GameEvent.addEvent(builder, eventOffset);
   return xyz.bomberman.game.data.GameEvent.endGameEvent(builder);
 }
 

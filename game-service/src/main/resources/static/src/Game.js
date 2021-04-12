@@ -32,6 +32,7 @@ import {
 } from "./constant.js";
 import {connect} from "./RSocket.js"
 import {Flowable} from "rsocket-flowable";
+import {flatbuffers} from "flatbuffers";
 
 
 export default class Game {
@@ -193,10 +194,15 @@ export default class Game {
                     console.log("cancelled")
                 }
             });
-            this.rsocketEmit = (type, data) => {
+            this.rsocketEmit = (type, builderFunction) => {
+                const builder = new flatbuffers.Builder()
+                xyz.bomberman.game.data.GameEvent.createGameEvent(
+                    builder, type, builderFunction(builder)
+                )
+                const data = Buffer.from(builder.bb.bytes());
                 subscriber.onNext({
                     metadata: String.fromCharCode('events'.length) + 'events',
-                    data: Object.assign(data, {eventType: type})
+                    data
                 })
             };
             const urlParams = new URLSearchParams(window.location.search);
@@ -249,7 +255,16 @@ export default class Game {
     }
 
     broadcastPosition(position) {
-        this.emit(MOVE_PLAYER, position);
+        this.emit(xyz.bomberman.game.data.EventType.MovePlayer,
+            (builder) =>
+                xyz.bomberman.game.data.MovePlayerEvent.createMovePlayerEvent(
+                    builder,
+                    0,
+                    position.x,
+                    position.y,
+                    0
+                )
+        );
     }
 
     broadcastDirection(direction) {
@@ -281,8 +296,8 @@ export default class Game {
     }
 
 
-    emit(type, data) {
-        this.rsocketEmit(type, data)
+    emit(type, builderFunction) {
+        this.rsocketEmit(type, builderFunction)
     }
 
 

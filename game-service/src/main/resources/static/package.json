@@ -20,6 +20,7 @@
     "buffer": "^6.0.3",
     "core-js": "^3.9.1",
     "express": "^4.17.1",
+    "flatbuffers": "^1.12.0",
     "lodash": "^4.17.11",
     "nodemon": "^1.19.1",
     "react": "^17.0.1",

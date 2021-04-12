@@ -1,17 +1,5 @@
 namespace xyz.bomberman.game.data;
 
-enum EventType:byte {
-  Reaction = 0,
-  DeleteWall,
-  DeletePlayer,
-  PlaceWall,
-  CreateItem,
-  PlaceBomb,
-  MovePlayer,
-  UpdateInventory,
-  HurtPlayer,
-  ChangeDirection = 9
-}
 
 struct Position {
   x: int32;
@@ -118,26 +106,31 @@ table DeletePlayerEvent  {
   id: string;
 }
 
-union Event {
-    LoginPlayerEvent,
-    CreatePlayerEvent,
-    CreateWallEvent,
-    CreateItemEvent,
-    ChangeDirectionEvent,
-    GrabItemEvent,
-    HurtPlayerEvent,
-    MovePlayerEvent,
-    PlaceBombEvent,
-    UpdateInventoryEvent,
-    DeleteWallEvent,
-    PlaceWallEvent,
-    ReactionEvent,
-    DeletePlayerEvent,
+union EventType {
+    Login: LoginPlayerEvent,
+    CreatePlayer: CreatePlayerEvent,
+    CreateItem: CreateItemEvent,
+    CreateWall: CreateWallEvent,
+
+    Reaction: ReactionEvent,
+    ChangeDirection: ChangeDirectionEvent,
+
+    GrabItem: GrabItemEvent,
+
+    HurtPlayer: HurtPlayerEvent,
+    MovePlayer: MovePlayerEvent,
+    DeletePlayer: DeletePlayerEvent,
+
+    PlaceBomb: PlaceBombEvent,
+
+    UpdateInventory: UpdateInventoryEvent,
+
+    PlaceWall: PlaceWallEvent,
+    DeleteWall: DeleteWallEvent,
 }
 
 table GameEvent {
-  type: EventType;
-  data: Event;
+  event: EventType;
 }
 
 root_type GameEvent;

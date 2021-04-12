@@ -46,19 +46,19 @@ processResources {
     }
 }
 
-task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']) {
-    language = 'java'
-    inputDir = file("$buildDir/resources/main")
-    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
-    extraArgs = "--gen-mutable"
-}
-
-//task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
-//    language = 'js'
+//task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']) {
+//    language = 'java'
 //    inputDir = file("$buildDir/resources/main")
-//    outputDir = file("$projectDir/src/main/resources/static/src/flatbuffers")
+//    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
 //    extraArgs = "--gen-mutable"
 //}
+
+task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
+    language = 'js'
+    inputDir = file("$buildDir/resources/main")
+    outputDir = file("$projectDir/src/main/resources/static/src/flatbuffers")
+    extraArgs = "--gen-mutable"
+}
 
 //task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
 //    language = 'js'
@@ -68,7 +68,7 @@ task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']
 //}
 
 classes {
-    dependsOn createFlatBuffersForJava
+//    dependsOn createFlatBuffersForJava
 }
 
 
