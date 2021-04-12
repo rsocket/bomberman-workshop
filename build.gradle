@@ -1,3 +1,9 @@
+plugins {
+    id "org.springframework.boot" version "2.4.4" apply false
+    id "io.spring.dependency-management"  version "1.0.11.RELEASE"  apply false
+    id "io.netifi.flatbuffers" version "1.0.7" apply false
+}
+
 group = "xyz.bomberman"
 version = "1.0-SNAPSHOT"
 

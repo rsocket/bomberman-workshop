@@ -1,0 +1,10 @@
+namespace xyz.bomberman.player.data;
+
+enum EventType:byte { Connected = 0, Disconnected = 1 }
+
+table PlayerEvent {
+  id: string;
+  type: EventType;
+}
+
+root_type PlayerEvent;

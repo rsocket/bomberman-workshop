@@ -1,4 +1,4 @@
-package xyz.bomberman.users;
+package xyz.bomberman.player;
 
 import java.util.UUID;
 import lombok.Value;

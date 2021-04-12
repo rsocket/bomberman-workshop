@@ -1,4 +1,4 @@
-package xyz.bomberman.discovery;
+package xyz.bomberman.remote;
 
 import io.rsocket.RSocket;
 

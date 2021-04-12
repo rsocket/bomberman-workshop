@@ -1,12 +1,12 @@
 plugins {
-    id "io.spring.dependency-management"  version "1.0.11.RELEASE"
+    id "io.spring.dependency-management"
     id "java"
 }
 
 dependencies {
     implementation platform("io.rsocket:rsocket-bom:1.1.1-SNAPSHOT")
+
     implementation("io.rsocket:rsocket-core")
-    implementation("io.rsocket:rsocket-router")
     implementation("io.rsocket:rsocket-transport-netty")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.11.4")

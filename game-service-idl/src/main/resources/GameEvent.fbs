@@ -1,0 +1,48 @@
+namespace xyz.bomberman.player.data;
+
+enum EventType:byte {
+  Reaction = 0,
+  DeleteWall,
+  DeletePlayer,
+  PlaceWall,
+  CreateItem,
+  PlaceBomb,
+  MovePlayer,
+  UpdateInventory,
+  HurtPlayer,
+  ChangeDirection = 9
+}
+
+struct Position {
+  x: int32;
+  y: int32;
+}
+
+struct Item {
+  position: Position;
+  type: string;
+}
+
+struct Wall {
+  id: string;
+  position: Position;
+  isDestructible: bool;
+}
+
+struct Player {
+  id: string;
+  position: Position;
+  direction: string;
+  amountBombs: int32;
+  amountWalls: int32;
+  health: int32;
+}
+
+union Any { Item, Wall, Player }
+
+table GameEvent {
+  type: EventType;
+  data: Any;
+}
+
+root_type PlayerEvent;

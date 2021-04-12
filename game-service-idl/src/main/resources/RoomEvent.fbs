@@ -1,0 +1,10 @@
+namespace xyz.bomberman.room.data;
+
+enum EventType:byte { Added = 0, Removed = 1 }
+
+table RoomEvent {
+  id: string;
+  type: EventType;
+}
+
+root_type RoomEvent;
