@@ -18,18 +18,18 @@ struct Position {
   y: int32;
 }
 
-struct Item {
+table Item {
   position: Position;
   type: string;
 }
 
-struct Wall {
+table Wall {
   id: string;
   position: Position;
   isDestructible: bool;
 }
 
-struct Player {
+table Player {
   id: string;
   position: Position;
   direction: string;
@@ -45,4 +45,4 @@ table GameEvent {
   data: Any;
 }
 
-root_type PlayerEvent;
+root_type GameEvent;

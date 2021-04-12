@@ -4,6 +4,7 @@ enum EventType:byte { Connected = 0, Disconnected = 1 }
 
 table PlayerEvent {
   id: string;
+  name: string;
   type: EventType;
 }
 
