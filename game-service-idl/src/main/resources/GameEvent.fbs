@@ -38,11 +38,106 @@ table Player {
   health: int32;
 }
 
-union Any { Item, Wall, Player }
+table LoginPlayerEvent  {
+  id: string;
+  gameId: string;
+}
+
+table CreatePlayerEvent  {
+  id: string;
+  x: int;
+  y: int;
+  direction: string;
+  amountBombs: int;
+  amountWalls: int;
+  health: int;
+}
+
+table CreateWallEvent  {
+  walls:[Wall];
+}
+
+table CreateItemEvent  {
+  position: Position;
+  type: string;
+}
+
+table ChangeDirectionEvent  {
+  id: string;
+  direction: string;
+}
+
+table GrabItemEvent  {
+  item: Item;
+  player: Player;
+}
+
+table HurtPlayerEvent  {
+  id: string;
+}
+
+table MovePlayerEvent  {
+  id: string;
+  x: int;
+  y: int;
+  direction: string;
+}
+
+table PlaceBombEvent  {
+  id: string;
+  x: int;
+  y: int;
+  amountBombs: int;
+}
+
+table UpdateInventoryEvent  {
+  id: string;
+  amountWalls: int;
+  amountBombs: int;
+  health: int;
+}
+
+table DeleteWallEvent  {
+  wallId: string;
+}
+
+table PlaceWallEvent  {
+  id: string;
+  wallId: string;
+  x: int;
+  y: int;
+  amountWalls: int;
+}
+
+table ReactionEvent  {
+  id: string;
+  reaction: string;
+}
+
+table DeletePlayerEvent  {
+  id: string;
+}
+
+union Event {
+    LoginPlayerEvent,
+    CreatePlayerEvent,
+    CreateWallEvent,
+    CreateItemEvent,
+    ChangeDirectionEvent,
+    GrabItemEvent,
+    HurtPlayerEvent,
+    MovePlayerEvent,
+    PlaceBombEvent,
+    UpdateInventoryEvent,
+    DeleteWallEvent,
+    PlaceWallEvent,
+    ReactionEvent,
+    DeletePlayerEvent,
+}
 
 table GameEvent {
   type: EventType;
-  data: Any;
+  data: Event;
 }
 
 root_type GameEvent;

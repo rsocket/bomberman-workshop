@@ -33,7 +33,6 @@ test {
 }
 
 flatbuffers {
-    flatBuffersVersion = '1.12.0'
 }
 
 processResources {
@@ -41,17 +40,17 @@ processResources {
     from(zipTree(configurations.flatbuf.singleFile))
 }
 
-//task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']) {
-//    language = 'java'
-//    inputDir = file("$buildDir/resources/main")
-//    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
-//    extraArgs = "--gen-mutable"
-//}
+task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']) {
+    language = 'java'
+    inputDir = file("$buildDir/resources/main")
+    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
+    extraArgs = "--gen-mutable"
+}
 
 task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
     language = 'js'
     inputDir = file("$buildDir/resources/main")
-    outputDir = file("$buildDir/generated/sources/flatbuffers/js/main")
+    outputDir = file("$projectDir/src/main/resources/static/src/flatbuffers")
     extraArgs = "--gen-mutable"
 }
 
