@@ -6,11 +6,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
 import xyz.bomberman.player.PlayersService;
 
+@Controller
 @AllArgsConstructor
 @MessageMapping("game.rooms")
 public class RemoteRoomsController {

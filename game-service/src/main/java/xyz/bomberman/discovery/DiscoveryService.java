@@ -30,8 +30,15 @@ public class DiscoveryService extends BaseSubscriber<DataBuffer> implements Disp
   final RoomsService roomsService;
   final PlayersService playersService;
 
-  public DiscoveryService(RSocketRequester.Builder requesterBuilder, RSocketStrategies strategies,
-      RoomsService roomsService, PlayersService playersService) {
+  public DiscoveryService(
+      RSocketRequester.Builder requesterBuilder,
+      RSocketStrategies strategies,
+      RoomsService roomsService,
+      PlayersService playersService,
+      RemoteRoomsController remoteRoomsController,
+      RemotePlayersController remotePlayersController,
+      RemotePlayerController remotePlayerController
+  ) {
     this.roomsService = roomsService;
     this.playersService = playersService;
 
@@ -45,8 +52,8 @@ public class DiscoveryService extends BaseSubscriber<DataBuffer> implements Disp
         ))
         .rsocketConnector(
             connector -> connector.acceptor(RSocketMessageHandler.responder(strategies,
-                RemoteRoomsController.class, RemotePlayersController.class,
-                RemotePlayerController.class)))
+                remoteRoomsController, remotePlayersController,
+                remotePlayerController)))
         .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
         .tcp("discovery.bomberman.xyz", 80);
 

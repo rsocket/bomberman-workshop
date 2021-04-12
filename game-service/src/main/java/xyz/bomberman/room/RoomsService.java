@@ -14,7 +14,6 @@ import reactor.core.publisher.Sinks;
 import xyz.bomberman.player.Player;
 
 @Service
-@AllArgsConstructor
 public class RoomsService {
 
   private final ConcurrentMap<String, Room> allRooms = new ConcurrentHashMap<>();

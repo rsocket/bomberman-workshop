@@ -15,6 +15,7 @@ import xyz.bomberman.player.data.EventType;
 import xyz.bomberman.player.data.PlayerEvent;
 import xyz.bomberman.player.data.PlayerId;
 
+@Controller
 @MessageMapping("game.players")
 @AllArgsConstructor
 public class RemotePlayersController {

@@ -22,7 +22,8 @@ class PlayersController {
   void login(@Payload String name, RSocketRequester requester) {
     final String id = String.valueOf(UUID.randomUUID());
 
-    final Player player = new LocalPlayer(id, name, requester);
+    final LocalPlayerClient localPlayerClient = new LocalPlayerClient(requester);
+    final Player player = new LocalPlayer(id, name, localPlayerClient);
 
     this.playersService.register(player);
 

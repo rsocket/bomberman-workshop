@@ -3,7 +3,8 @@ package xyz.bomberman.player;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
 import reactor.core.publisher.Flux;
-import xyz.bomberman.game.Game;
+import xyz.bomberman.game.data.Game;
+import xyz.bomberman.game.data.GameEvent;
 
 @AllArgsConstructor
 public class RemotePlayer implements Player {
@@ -21,7 +22,7 @@ public class RemotePlayer implements Player {
   }
 
   @Override
-  public Flux<DataBuffer> play(Game game, Flux<DataBuffer> otherPlayersEvents) {
+  public Flux<GameEvent> play(Game game, Flux<GameEvent> otherPlayersEvents) {
     return remotePlayerClient.play(id, game, otherPlayersEvents);
   }
 }

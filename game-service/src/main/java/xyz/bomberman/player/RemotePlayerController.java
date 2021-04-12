@@ -5,10 +5,12 @@ import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import xyz.bomberman.game.data.Game;
 import xyz.bomberman.game.data.GameEvent;
 
+@Controller
 @MessageMapping("game.play")
 @AllArgsConstructor
 public class RemotePlayerController {
