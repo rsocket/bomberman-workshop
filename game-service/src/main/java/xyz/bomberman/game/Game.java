@@ -24,7 +24,7 @@ public class Game {
     this.positionItems = new CopyOnWriteArrayList<>();
   }
 
-  static void create(Set<Player> player) {
+  public static void create(Set<Player> player) {
 
   }
 //

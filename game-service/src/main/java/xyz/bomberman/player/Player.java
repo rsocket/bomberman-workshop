@@ -1,11 +1,14 @@
 package xyz.bomberman.player;
 
-public class RemotePlayer {
+import org.springframework.core.io.buffer.DataBuffer;
+import reactor.core.publisher.Flux;
+import xyz.bomberman.game.Game;
+
+public interface Player {
 
   String id();
 
   String name();
 
-  // is called from Game.create()
-  Flux<Event> play(Game game, Flux<Event> otherPlayersEvents);
+  Flux<DataBuffer> play(Game game, Flux<DataBuffer> otherPlayersEvents);
 }

@@ -1,6 +1,6 @@
 package xyz.bomberman.player;
 
-import static xyz.bomberman.remote.Constants.DESTINATION_ID_MIMETYPE;
+import static xyz.bomberman.discovery.Constants.DESTINATION_ID_MIMETYPE;
 
 import java.util.HashMap;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -11,20 +11,20 @@ import xyz.bomberman.player.data.PlayerEvent;
 
 public class RemotePlayersListener extends BaseSubscriber<DataBuffer> {
 
-  final RSocketRequester requester;
+  final RSocketRequester rSocketRequester;
   final String serviceId;
   final PlayersService playersService;
 
   final HashMap<String, RemotePlayer> remotePlayers = new HashMap<>();
 
-  public RemotePlayersListener(RSocketRequester rSocketRequester, String remoteServiceId, PlayersService playersService
+  public RemotePlayersListener(RSocketRequester rSocketRequester, String serviceId, PlayersService playersService
   ) {
-    this.serviceId = remoteServiceId;
-    this.requester = rSocketRequester;
+    this.serviceId = serviceId;
+    this.rSocketRequester = rSocketRequester;
     this.playersService = playersService;
 
     rSocketRequester.route("game.players")
-        .metadata(ms -> ms.metadata(serviceId, DESTINATION_ID_MIMETYPE))
+        .metadata(serviceId, DESTINATION_ID_MIMETYPE)
         .retrieveFlux(DataBuffer.class)
         .subscribe(this);
   }

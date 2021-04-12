@@ -1,6 +1,6 @@
 package xyz.bomberman.room;
 
-import static xyz.bomberman.remote.Constants.DESTINATION_ID_MIMETYPE;
+import static xyz.bomberman.discovery.Constants.DESTINATION_ID_MIMETYPE;
 
 import java.util.Set;
 import java.util.stream.Collectors;

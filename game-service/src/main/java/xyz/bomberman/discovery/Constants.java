@@ -1,4 +1,4 @@
-package xyz.bomberman.remote;
+package xyz.bomberman.discovery;
 
 import org.springframework.util.MimeType;
 

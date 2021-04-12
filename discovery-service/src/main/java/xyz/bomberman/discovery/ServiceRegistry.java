@@ -1,12 +1,12 @@
-package xyz.bomberman.remote;
+package xyz.bomberman.discovery;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-import xyz.bomberman.remote.ServiceInfo.Event;
-import xyz.bomberman.remote.ServiceInfo.EventType;
+import xyz.bomberman.discovery.ServiceInfo.Event;
+import xyz.bomberman.discovery.ServiceInfo.EventType;
 
 public class ServiceRegistry {
 

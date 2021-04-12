@@ -42,10 +42,6 @@ public class LocalRoom implements Room {
 
     if (playersSink.tryEmitComplete() == EmitResult.OK) {
       Game.create(players);
-
-      for (Player player1 : players) {
-        player1.play(game, game.sink.asFlux()).subscribe(game);
-      }
     }
   }
 

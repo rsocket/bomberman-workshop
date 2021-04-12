@@ -2,15 +2,15 @@ package xyz.bomberman.player;
 
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.messaging.rsocket.RSocketRequester;
 import reactor.core.publisher.Flux;
+import xyz.bomberman.game.Game;
 
 @AllArgsConstructor
 public class LocalPlayer implements Player {
 
   final String id;
   final String name;
-  final RSocketRequester requester;
+  final LocalPlayerClient localPlayerClient;
 
   @Override
   public String id() {
@@ -23,10 +23,7 @@ public class LocalPlayer implements Player {
   }
 
   @Override
-  public Flux<Event> play(Game game, Flux<Event> otherPlayersEvents) {
-    return requester.route("game.play")
-        .data(Flux.just(game).concatWith(otherPlayersEvents))
-        .retrieveFlux(DataBuffer.class)
-        .map(db -> Event.of(db));
+  public Flux<DataBuffer> play(Game game, Flux<DataBuffer> otherPlayersEvents) {
+    return localPlayerClient.play(game, otherPlayersEvents);
   }
 }

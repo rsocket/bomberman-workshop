@@ -1,0 +1,25 @@
+namespace xyz.bomberman.discovery.data;
+
+enum TransportType:byte { Tcp = 0, WebSocket = 1 }
+
+table ServiceConnectedEvent {
+  id: string;
+  host: string;
+  port: int32;
+  transport: TransportType;
+}
+
+table ServiceDisconnectedEvent {
+  id: string;
+}
+
+union AnyServiceEvent {
+  Connected: ServiceConnectedEvent,
+  Disconnected: ServiceDisconnectedEvent
+}
+
+table ServiceEvent {
+  event: AnyServiceEvent;
+}
+
+root_type ServiceEvent;
