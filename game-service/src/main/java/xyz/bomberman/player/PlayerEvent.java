@@ -6,11 +6,11 @@ import xyz.bomberman.player.Player;
 @Value(staticConstructor = "of")
 public class PlayerEvent {
 
-  Player room;
+  Player player;
   Type type;
 
   enum Type {
-    ADDED,
-    REMOVED
+    CONNECTED,
+    DISCONNECTED
   }
 }

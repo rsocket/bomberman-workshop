@@ -29,20 +29,16 @@ xyz.bomberman.game.data = xyz.bomberman.game.data || {};
  */
 xyz.bomberman.game.data.EventType = {
   NONE: 0,
-  Login: 1,
-  CreatePlayer: 2,
-  CreateItem: 3,
-  CreateWall: 4,
-  Reaction: 5,
-  ChangeDirection: 6,
-  GrabItem: 7,
-  HurtPlayer: 8,
-  MovePlayer: 9,
-  DeletePlayer: 10,
-  PlaceBomb: 11,
-  UpdateInventory: 12,
-  PlaceWall: 13,
-  DeleteWall: 14
+  Reaction: 1,
+  ChangeDirection: 2,
+  GrabItem: 3,
+  HurtPlayer: 4,
+  MovePlayer: 5,
+  DeletePlayer: 6,
+  PlaceBomb: 7,
+  UpdateInventory: 8,
+  PlaceWall: 9,
+  DeleteWall: 10
 };
 
 /**
@@ -50,20 +46,16 @@ xyz.bomberman.game.data.EventType = {
  */
 xyz.bomberman.game.data.EventTypeName = {
   '0': 'NONE',
-  '1': 'Login',
-  '2': 'CreatePlayer',
-  '3': 'CreateItem',
-  '4': 'CreateWall',
-  '5': 'Reaction',
-  '6': 'ChangeDirection',
-  '7': 'GrabItem',
-  '8': 'HurtPlayer',
-  '9': 'MovePlayer',
-  '10': 'DeletePlayer',
-  '11': 'PlaceBomb',
-  '12': 'UpdateInventory',
-  '13': 'PlaceWall',
-  '14': 'DeleteWall'
+  '1': 'Reaction',
+  '2': 'ChangeDirection',
+  '3': 'GrabItem',
+  '4': 'HurtPlayer',
+  '5': 'MovePlayer',
+  '6': 'DeletePlayer',
+  '7': 'PlaceBomb',
+  '8': 'UpdateInventory',
+  '9': 'PlaceWall',
+  '10': 'DeleteWall'
 };
 
 /**
@@ -2701,6 +2693,223 @@ xyz.bomberman.game.data.GameEvent.createGameEvent = function(builder, eventType,
   xyz.bomberman.game.data.GameEvent.addEventType(builder, eventType);
   xyz.bomberman.game.data.GameEvent.addEvent(builder, eventOffset);
   return xyz.bomberman.game.data.GameEvent.endGameEvent(builder);
+}
+
+/**
+ * @constructor
+ */
+xyz.bomberman.game.data.Game = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {xyz.bomberman.game.data.Game}
+ */
+xyz.bomberman.game.data.Game.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {xyz.bomberman.game.data.Game=} obj
+ * @returns {xyz.bomberman.game.data.Game}
+ */
+xyz.bomberman.game.data.Game.getRootAsGame = function(bb, obj) {
+  return (obj || new xyz.bomberman.game.data.Game).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {xyz.bomberman.game.data.Game=} obj
+ * @returns {xyz.bomberman.game.data.Game}
+ */
+xyz.bomberman.game.data.Game.getSizePrefixedRootAsGame = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new xyz.bomberman.game.data.Game).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {number} index
+ * @param {xyz.bomberman.game.data.Player=} obj
+ * @returns {xyz.bomberman.game.data.Player}
+ */
+xyz.bomberman.game.data.Game.prototype.players = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? (obj || new xyz.bomberman.game.data.Player).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+xyz.bomberman.game.data.Game.prototype.playersLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {xyz.bomberman.game.data.Item=} obj
+ * @returns {xyz.bomberman.game.data.Item}
+ */
+xyz.bomberman.game.data.Game.prototype.items = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? (obj || new xyz.bomberman.game.data.Item).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+xyz.bomberman.game.data.Game.prototype.itemsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {number} index
+ * @param {xyz.bomberman.game.data.Wall=} obj
+ * @returns {xyz.bomberman.game.data.Wall}
+ */
+xyz.bomberman.game.data.Game.prototype.walls = function(index, obj) {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? (obj || new xyz.bomberman.game.data.Wall).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
+};
+
+/**
+ * @returns {number}
+ */
+xyz.bomberman.game.data.Game.prototype.wallsLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+xyz.bomberman.game.data.Game.startGame = function(builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} playersOffset
+ */
+xyz.bomberman.game.data.Game.addPlayers = function(builder, playersOffset) {
+  builder.addFieldOffset(0, playersOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.game.data.Game.createPlayersVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+xyz.bomberman.game.data.Game.startPlayersVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} itemsOffset
+ */
+xyz.bomberman.game.data.Game.addItems = function(builder, itemsOffset) {
+  builder.addFieldOffset(1, itemsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.game.data.Game.createItemsVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+xyz.bomberman.game.data.Game.startItemsVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} wallsOffset
+ */
+xyz.bomberman.game.data.Game.addWalls = function(builder, wallsOffset) {
+  builder.addFieldOffset(2, wallsOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.game.data.Game.createWallsVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+xyz.bomberman.game.data.Game.startWallsVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.game.data.Game.endGame = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} playersOffset
+ * @param {flatbuffers.Offset} itemsOffset
+ * @param {flatbuffers.Offset} wallsOffset
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.game.data.Game.createGame = function(builder, playersOffset, itemsOffset, wallsOffset) {
+  xyz.bomberman.game.data.Game.startGame(builder);
+  xyz.bomberman.game.data.Game.addPlayers(builder, playersOffset);
+  xyz.bomberman.game.data.Game.addItems(builder, itemsOffset);
+  xyz.bomberman.game.data.Game.addWalls(builder, wallsOffset);
+  return xyz.bomberman.game.data.Game.endGame(builder);
 }
 
 // Exports for Node.js and RequireJS

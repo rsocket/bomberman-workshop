@@ -3,6 +3,7 @@ package xyz.bomberman.room;
 import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -17,13 +18,10 @@ import xyz.bomberman.player.Player;
 
 @Controller
 @MessageMapping("game.rooms")
+@AllArgsConstructor
 public class RoomsController {
 
   private final RoomsService roomsService;
-
-  public RoomsController(RoomsService roomsService) {
-    this.roomsService = roomsService;
-  }
 
   @GetMapping("/")
   ResponseEntity<Resource> game(@Value("classpath:/static/rooms.html") Resource page) {

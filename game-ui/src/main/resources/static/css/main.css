@@ -1,0 +1,322 @@
+body {
+  background-image: radial-gradient(#aae5e7, #024873);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#reactionCanvas {
+  border-radius: 10px;
+  background-image: radial-gradient(#302ee7, #650973);
+  position: absolute;
+  top: 200px;
+  right: 20px;
+}
+
+#myCanvas {
+  border-radius: 10px;
+  background-image: radial-gradient(#f2daac, #d9b282);
+  -webkit-box-shadow: 10px 10px 76px 77px rgba(217, 178, 130, 1);
+  -moz-box-shadow: 10px 10px 76px 77px rgba(217, 178, 130, 1);
+  box-shadow: 10px 10px 76px 77px rgba(217, 178, 130, 1);
+}
+
+.title {
+  display: none;
+  /*background-color: rgb(151, 70, 32);*/
+  position: absolute;
+  top: 0;
+  color: rgb(122, 72, 51);
+  box-shadow: 0 5px 20px #024873;
+  border: 4px solid rgb(122, 72, 51);
+  padding: 3px;
+  font-family: "Allerta Stencil", sans-serif;
+}
+
+#inventory {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  margin-left: 1em;
+  font-size: 40px;
+
+}
+
+#inventoryEnemy {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 20px;
+}
+
+
+#nickname {
+  margin-right: 0.9em;
+}
+
+.countBox {
+  width: 60px;
+  display: flex;
+  justify-content: center;
+  margin: 5px;
+}
+
+.playerInfos {
+  margin-right: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  -webkit-animation: fadein 2s; /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 2s; /* Firefox < 16 */
+  -ms-animation: fadein 2s; /* Internet Explorer */
+  -o-animation: fadein 2s; /* Opera < 12.1 */
+  animation: fadein 2s;
+}
+
+#lives {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 90px;
+}
+
+#bombs {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 90px;
+}
+
+#walls {
+  margin: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 90px;
+}
+
+#pic {
+  height: 40px;
+  width: 40px;
+}
+
+p {
+  margin: 5px;
+  font-family: "Carter One", cursive;
+  color: white;
+  letter-spacing: 3px;
+}
+
+#loginForm {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 20px;
+}
+
+
+
+
+
+#keys {
+  display: flex;
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0.5;
+}
+
+#keys > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+  font-size: 20px;
+
+}
+
+.key {
+  border: 5px solid white;
+  border-radius: 10px;
+  text-align: center;
+  padding: 6px 20px;
+  margin-right: 20px;
+}
+
+
+#you_suck_text {
+  position: absolute;
+  top: 620px;
+  right: 20px;
+  font-size: 1em;
+  font-family : "Carter One", cursive;
+  text-shadow: 1px 1px 2px #FF0000;
+}
+
+#gameOverScreen {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  background-color: rgba(165, 42, 42, 0.4);
+  position: absolute;
+}
+
+#gameOverText {
+  font-size: 3em;
+  font-family: "Carter One", cursive;
+  text-shadow: 2px 2px 4px #000000;
+}
+
+#youwinscreen {
+  display: none;
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  background-color: rgba(165, 300, 60, 0.4);
+  position: absolute;
+}
+
+#youwinText{
+  font-size: 3em;
+  font-family: "Carter One", cursive;
+  text-shadow: 2px 2px 4px #000000;
+}
+
+input {
+  border: 2px solid #024873;
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+  border-radius: 4px;
+  height: 40px;
+  margin-top: 15px;
+}
+
+.rooms {
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+}
+
+.room {
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+  border-radius: 4px;
+  height: 40px;
+  margin: 10px;
+  text-align: left;
+  float: left;
+}
+
+button {
+  border: 2px solid #024873;
+  font-family: "Carter One", cursive;
+  font-size: 1.1em;
+  border-radius: 4px;
+  height: 40px;
+  margin: 5px;
+  text-align: left;
+}
+
+#reactions {
+  height: 5vh;
+  display: flex;
+  align-content: space-between;
+  flex-direction: row;
+  position: absolute;
+  right: 10px;
+  top: 15vh;
+  z-index: 101;
+}
+
+#echat {
+  height: 50vh;
+  position: absolute;
+  right: 10px;
+  top: 25vh;
+  overflow-y: scroll;
+  float: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 20px;
+  z-index: 101;
+}
+
+#chat_text {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+h1 {
+  margin: 5px;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Firefox < 16 */
+@-moz-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Internet Explorer */
+@-ms-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Opera < 12.1 */
+@-o-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

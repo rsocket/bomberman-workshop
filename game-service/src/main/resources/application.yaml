@@ -13,5 +13,4 @@ spring:
       chain:
         cache: false
       static-locations:
-        - 'file:game-service/src/main/resources/static/'
         - 'classpath:/static/'

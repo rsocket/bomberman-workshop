@@ -18,6 +18,8 @@ dependencies {
     flatbuf(project(":game-service-idl"))
     flatbuf(project(":discovery-service-idl"))
 
+    implementation(project(":game-ui"))
+
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-rsocket")
 
@@ -46,37 +48,13 @@ processResources {
     }
 }
 
-//task createFlatBuffersForJava(type: FlatBuffers, dependsOn: ['processResources']) {
-//    language = 'java'
-//    inputDir = file("$buildDir/resources/main")
-//    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
-//    extraArgs = "--gen-mutable"
-//}
-
-task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
-    language = 'js'
+task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
+    language = 'java'
     inputDir = file("$buildDir/resources/main")
-    outputDir = file("$projectDir/src/main/resources/static/src/flatbuffers")
+    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
     extraArgs = "--gen-mutable"
 }
 
-//task createFlatBuffersForJS(type: FlatBuffers, dependsOn: ['processResources']) {
-//    language = 'js'
-//    inputDir = file("$buildDir/resources/main")
-//    outputDir = file("$buildDir/generated/sources/flatbuffers/js/main")
-//    extraArgs = "--gen-mutable"
-//}
-
 classes {
-//    dependsOn createFlatBuffersForJava
+    dependsOn createFlatBuffers
 }
-
-
-//task yarnBuild {
-//    exec {
-//        workingDir './src/main/resources/static'
-//        commandLine 'yarn', 'build'
-//    }
-//}
-
-task stage(dependsOn: ['yarnBuild', 'bootJar'])

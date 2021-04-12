@@ -2,9 +2,9 @@ package xyz.bomberman.player.support;
 
 import io.rsocket.core.RSocketServer;
 import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class AssociatePlayerRSocketServerCustomizer implements RSocketServerCustomizer {
 
   @Override

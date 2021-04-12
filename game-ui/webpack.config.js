@@ -3,9 +3,9 @@ const path = require('path');
 module.exports = [
 {
 	mode: 'development',
-	entry: ["@babel/polyfill", './src/App.js'],
+	entry: ["@babel/polyfill", './src/main/js/App.js'],
 	output: {
-		path: path.resolve(__dirname, 'dist'),
+		path: path.resolve(__dirname, './build/resources/main/static/js'),
 		filename: 'main.js'
 	},
 	module: {
@@ -28,9 +28,9 @@ module.exports = [
 },
 {
 	mode: 'development',
-	entry: ["@babel/polyfill", './src/Rooms.jsx'],
+	entry: ["@babel/polyfill", './src/main/js/Rooms.jsx'],
 	output: {
-		path: path.resolve(__dirname, 'dist'),
+		path: path.resolve(__dirname, './build/resources/main/static/js'),
 		filename: 'rooms.js'
 	},
 	module: {

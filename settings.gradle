@@ -1,5 +1,6 @@
 rootProject.name = "bomberman-workshop"
 
+include "game-ui"
 include "game-service"
 include "game-service-idl"
 

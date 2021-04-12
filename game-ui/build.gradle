@@ -1,0 +1,40 @@
+import io.netifi.flatbuffers.plugin.tasks.FlatBuffers
+
+plugins {
+    id "java"
+    id "io.netifi.flatbuffers"
+    id "com.github.node-gradle.node"
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+
+configurations {
+    flatbuf
+}
+
+dependencies {
+    flatbuf(project(":game-service-idl"))
+}
+
+flatbuffers {
+    flatBuffersVersion = '1.12.0'
+}
+
+processResources {
+    dependsOn configurations.flatbuf
+    dependsOn yarn_install
+    dependsOn yarn_run_webpack
+
+    configurations.flatbuf.files.each {
+        from(zipTree(it).matching {
+            include "*.fbs"
+        })
+    }
+}
+
+task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
+    language = 'js'
+    inputDir = file("$buildDir/resources/main")
+    outputDir = file("$projectDir/src/main/js/flatbuffers")
+    extraArgs = "--gen-mutable"
+}

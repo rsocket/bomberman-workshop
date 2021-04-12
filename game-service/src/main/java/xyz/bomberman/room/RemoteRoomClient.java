@@ -1,6 +1,7 @@
 package xyz.bomberman.room;
 
 import static xyz.bomberman.discovery.Constants.DESTINATION_ID_MIMETYPE;
+import static xyz.bomberman.discovery.Constants.PLAYER_ID_MIMETYPE;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,14 +31,14 @@ class RemoteRoomClient {
   Mono<Void> join(String roomId, Player player) {
     return requester.route("game.rooms.{id}.join", roomId)
         .metadata(serviceId, DESTINATION_ID_MIMETYPE)
-        .data(player.id())
+        .metadata(player.id(), PLAYER_ID_MIMETYPE)
         .retrieveMono(Void.class);
   }
 
   Mono<Void> leave(String roomId, Player player) {
     return requester.route("game.rooms.{id}.leave", roomId)
         .metadata(serviceId, DESTINATION_ID_MIMETYPE)
-        .data(player.id())
+        .metadata(player.id(), PLAYER_ID_MIMETYPE)
         .retrieveMono(Void.class);
   }
 }

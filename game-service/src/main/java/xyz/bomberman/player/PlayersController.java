@@ -12,11 +12,11 @@ import org.springframework.stereotype.Controller;
 import xyz.bomberman.player.support.PlayerAwareRSocket;
 
 @Controller
-@MessageMapping("players")
+@MessageMapping("game.players")
 @AllArgsConstructor
 class PlayersController {
 
-  PlayersService playersService;
+  final PlayersService playersService;
 
   @ConnectMapping("login")
   void login(@Payload String name, RSocketRequester requester) {

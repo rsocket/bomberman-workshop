@@ -107,11 +107,6 @@ table DeletePlayerEvent  {
 }
 
 union EventType {
-    Login: LoginPlayerEvent,
-    CreatePlayer: CreatePlayerEvent,
-    CreateItem: CreateItemEvent,
-    CreateWall: CreateWallEvent,
-
     Reaction: ReactionEvent,
     ChangeDirection: ChangeDirectionEvent,
 
@@ -131,6 +126,12 @@ union EventType {
 
 table GameEvent {
   event: EventType;
+}
+
+table Game {
+  players: [Player];
+  items: [Item];
+  walls: [Wall];
 }
 
 root_type GameEvent;
