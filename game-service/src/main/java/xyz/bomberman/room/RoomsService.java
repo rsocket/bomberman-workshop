@@ -27,9 +27,7 @@ public class RoomsService {
 
       if (room != null) {
         return room.join(player)
-            .doFinally((v) -> {
-              roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST);
-            });
+            .doFinally((v) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST));
       }
 
       return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
@@ -42,9 +40,7 @@ public class RoomsService {
 
       if (room != null) {
         return room.leave(player)
-            .doFinally((v) -> {
-              roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST);
-            });
+            .doFinally((v) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST));
       }
 
       return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
@@ -55,8 +51,8 @@ public class RoomsService {
       var room = allRooms.remove(roomId);
 
       if (room != null) {
-        roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
         room.start(player);
+        roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
         return;
       }
 
@@ -79,7 +75,6 @@ public class RoomsService {
     var room = allRooms.remove(roomId);
 
     if (room != null) {
-      room.close();
       roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
     }
   }

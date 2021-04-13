@@ -19,7 +19,7 @@ public class RemoteRoomsController {
   private final RoomsService roomsService;
   private final PlayersService playersService;
 
-  @MessageMapping
+  @MessageMapping("")
   public Flux<ByteBuffer> list() {
     return roomsService.list()
         .map(re -> {
@@ -44,20 +44,24 @@ public class RemoteRoomsController {
                       )
                   )
               );
-          return builder.dataBuffer();
+          return builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset());
         });
   }
 
   @MessageMapping("{id}.join")
-  public Mono<Void> join(@DestinationVariable("id") String roomId,
-      @Header("bomberman/player.id") String playerId) {
+  public Mono<Void> join(
+      @DestinationVariable("id") String roomId,
+      @Header("bomberman/player.id") String playerId
+  ) {
     final Player player = playersService.find(playerId);
     return roomsService.join(roomId, player);
   }
 
   @MessageMapping("{id}.leave")
-  public Mono<Void> leave(@DestinationVariable("id") String roomId,
-      @Header("bomberman/player.id") String playerId) {
+  public Mono<Void> leave(
+      @DestinationVariable("id") String roomId,
+      @Header("bomberman/player.id") String playerId
+  ) {
     final Player player = playersService.find(playerId);
     return roomsService.leave(roomId, player);
   }

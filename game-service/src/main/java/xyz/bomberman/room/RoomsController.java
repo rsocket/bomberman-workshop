@@ -53,8 +53,7 @@ public class RoomsController {
                   )
               )
           );
-//          return builder.dataBuffer();
-          return ByteBuffer.wrap(builder.sizedByteArray());
+          return builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset());
         });
   }
 

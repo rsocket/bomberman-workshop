@@ -1,14 +1,8 @@
 package xyz.bomberman.room;
 
-import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
-
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.core.publisher.Sinks.EmitFailureHandler;
-import reactor.core.publisher.Sinks.EmitResult;
 import xyz.bomberman.game.Game;
 import xyz.bomberman.player.Player;
 
@@ -18,7 +12,6 @@ public class LocalRoom implements Room {
   final Player owner;
 
   final CopyOnWriteArraySet<Player> players = new CopyOnWriteArraySet<>();
-  final Sinks.Many<Set<Player>> playersSink = Sinks.many().multicast().onBackpressureBuffer();
 
   public LocalRoom(String id, Player owner) {
     this.id = id;
@@ -43,14 +36,7 @@ public class LocalRoom implements Room {
       // throw new IllegalStateException("Only owner can start the game");
     }
 
-    if (playersSink.tryEmitComplete() == EmitResult.OK) {
-      playersSink.emitComplete(FAIL_FAST);
-      Game.create(players);
-    }
-  }
-
-  public void close() {
-    playersSink.emitError(new RuntimeException("Room was closed"), FAIL_FAST);
+    Game.create(players);
   }
 
   @Override
@@ -58,7 +44,6 @@ public class LocalRoom implements Room {
     return Mono.fromRunnable(() -> {
       if (players.size() < 4) {
         if (players.add(player)) {
-          playersSink.emitNext(players, FAIL_FAST);
           return;
         }
         throw new IllegalStateException("Player already joined");
@@ -72,7 +57,6 @@ public class LocalRoom implements Room {
   public Mono<Void> leave(Player player) {
     return Mono.fromRunnable(() -> {
       if (players.remove(player)) {
-        playersSink.emitNext(players, FAIL_FAST);
         return;
       }
 

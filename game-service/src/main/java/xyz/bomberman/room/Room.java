@@ -13,8 +13,6 @@ public interface Room {
 
   void start(Player player);
 
-  void close();
-
   Mono<Void> join(Player player);
 
   Mono<Void> leave(Player player);

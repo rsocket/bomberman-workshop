@@ -21,6 +21,7 @@ const userName = uniqueNamesGenerator({
 export function Rooms() {
     const [rooms, setRooms] = useState([]);
     const [userId, setUserId] = useState(undefined);
+    const [ownedRoomId, setOwnedRoomId] = useState(undefined);
     const socket = useRef(null);
 
     useEffect(async () => {
@@ -115,7 +116,7 @@ export function Rooms() {
                 [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms.create')],
             ]),
             data: Buffer.from(roomId)
-        }).subscribe()
+        }).then(payload => setOwnedRoomId(payload.data.toString()))
     }
 
     function joinGame(roomId) {
@@ -131,9 +132,10 @@ export function Rooms() {
         const rSocket = socket.current;
         rSocket.requestResponse({
             metadata: encodeCompositeMetadata([
-                [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.leave`)],
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.${ownedRoomId === roomId ? "close" : "leave"}`)],
             ]),
         }).subscribe()
+        setOwnedRoomId(undefined)
     }
 
     async function startGame(roomId) {
