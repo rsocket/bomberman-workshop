@@ -36,10 +36,11 @@ export function Rooms() {
                 s.request(2147483642)
             },
             onNext(roomEventBuffer) {
-                const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(flatbuffers.ByteBuffer.allocate(roomEventBuffer));
+                const dataBuf = flatbuffers.ByteBuffer.allocate(roomEventBuffer.data);
+                const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
                 const eventType = event.type();
-                const roomId = event.type();
-                const playersIds = new Array(event.playersLength()).map((_, i) => event.players(i))
+                const roomId = event.id();
+                const playersIds = [...new Array(event.playersLength()).keys()].map(i => event.players(i))
                 console.log(event);
                 // update all displayed rooms
                 setRooms(rooms => {
@@ -91,16 +92,18 @@ export function Rooms() {
     function joinGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
-            metadata: String.fromCharCode('joinGame'.length) + 'joinGame',
-            data: {userId: userName, roomId: roomId}
+            metadata: encodeCompositeMetadata([
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.join`)],
+            ]),
         }).subscribe()
     }
 
     function leaveGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
-            metadata: String.fromCharCode('leaveGame'.length) + 'leaveGame',
-            data: {userId: userName, roomId: roomId}
+            metadata: encodeCompositeMetadata([
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.leave`)],
+            ]),
         }).subscribe()
     }
 

@@ -34,8 +34,8 @@ public class RoomsController {
     return roomsService.list()
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
-          RoomEvent.finishRoomEventBuffer(builder, RoomEvent
-              .createRoomEvent(
+          RoomEvent.finishRoomEventBuffer(builder,
+              RoomEvent.createRoomEvent(
                   builder,
                   (byte) re.getType().ordinal(),
                   builder.createString(re.getRoom().id()),
@@ -49,7 +49,8 @@ public class RoomsController {
                   )
               )
           );
-          return builder.dataBuffer();
+//          return builder.dataBuffer();
+          return ByteBuffer.wrap(builder.sizedByteArray());
         });
   }
 

@@ -58,6 +58,7 @@ public class LocalRoom implements Room {
       if (players.size() < 4) {
         if (players.add(player)) {
           playersSink.emitNext(players, FAIL_FAST);
+          return;
         }
         throw new IllegalStateException("Player already joined");
       }
@@ -71,6 +72,7 @@ public class LocalRoom implements Room {
     return Mono.fromRunnable(() -> {
       if (players.remove(player)) {
         playersSink.emitNext(players, FAIL_FAST);
+        return;
       }
 
       throw new IllegalStateException("Player already left");
