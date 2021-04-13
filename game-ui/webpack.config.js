@@ -3,13 +3,25 @@ const path = require('path');
 module.exports = [
 {
 	mode: 'development',
-	entry: ["@babel/polyfill", './src/main/js/App.js'],
+	entry: ["@babel/polyfill", './src/main/js/App.jsx'],
 	output: {
 		path: path.resolve(__dirname, './build/resources/main/static/js'),
 		filename: 'main.js'
 	},
 	module: {
 		rules: [
+			{
+				test: /\.m?(js|jsx)$/,
+				exclude: /node_modules/,
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: [
+							['@babel/preset-env', { targets: "defaults" }]
+						]
+					}
+				}
+			},
 			{
 				test: /\.css$/,
 				use: [

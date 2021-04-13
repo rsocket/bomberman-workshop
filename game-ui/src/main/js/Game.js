@@ -34,6 +34,7 @@ import {connect} from "./RSocket.js"
 import {Flowable} from "rsocket-flowable";
 import {flatbuffers} from "flatbuffers";
 
+import {xyz} from "./flatbuffers/GameEvent_generated";
 
 export default class Game {
 
@@ -182,8 +183,16 @@ export default class Game {
 
     async initRsocket() {
         const callbacks = this.callbacks;
-        const [wsClient, rsocket] = await connect();
+        const [wsClient, rsocket] = await connect(this.id);
         const self = this;
+        wsClient.connectionStatus().subscribe({
+            onSubscribe(s) {
+                s.request(2147483642);
+            },
+            onNext(t) {
+                console.log("status: " + t.kind)
+            }
+        })
         rsocket.requestChannel(new Flowable(subscriber => {
             console.log("subscribing")
             subscriber.onSubscribe({
@@ -201,13 +210,20 @@ export default class Game {
                 )
                 const data = Buffer.from(builder.bb.bytes());
                 subscriber.onNext({
-                    metadata: String.fromCharCode('events'.length) + 'events',
+                    metadata: String.fromCharCode('game.play'.length) + 'game.play',
                     data
                 })
             };
             const urlParams = new URLSearchParams(window.location.search);
             const gameId = urlParams.get('id');
-            this.emit(LOGIN_PLAYER, { id: this.id, gameId: gameId });
+            this.emit(xyz.bomberman.game.data.EventType.LoginPlayerEvent,
+                (builder) => {
+                    xyz.bomberman.game.data.LoginPlayerEvent.createLoginPlayerEvent(
+                        builder,
+                        this.id,
+                        gameId
+                    );
+            });
         }))
             .subscribe({
                 onSubscribe(s) {
@@ -226,14 +242,6 @@ export default class Game {
                     console.log("complete?")
                 }
             })
-        wsClient.connectionStatus().subscribe({
-            onSubscribe(s) {
-                s.request(2147483642);
-            },
-            onNext(t) {
-                console.log("status: " + t.kind)
-            }
-        })
     }
 
 

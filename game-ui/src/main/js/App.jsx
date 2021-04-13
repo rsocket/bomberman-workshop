@@ -1,5 +1,10 @@
 "use strict";
 
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+import '@babel/polyfill'
+import React, {useEffect, useRef, useState} from 'react';
+import {connect} from "./RSocket.js"
 import Game from "./Game.js";
 import _ from 'lodash';
 import './main.css';
@@ -15,6 +20,8 @@ import {
     BOMB,
     FIRE,
 } from "./constant.js";
+import ReactDOM from "react-dom";
+import {Rooms} from "./Rooms.jsx";
 
 
 export class AssetLoader {
@@ -54,6 +61,13 @@ new AssetLoader()
         { name: BOMBERMAN_BURNED, url: '../images/burned_bomberman.png'}
     ])
     .then(assets => {
+        console.log("AAAA")
+        ReactDOM.render(
+            <React.StrictMode>
+                <Rooms/>
+            </React.StrictMode>,
+            document.getElementById('root')
+        );
         let game = null;
         let id = '';
 

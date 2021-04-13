@@ -320,3 +320,7 @@ h1 {
     opacity: 1;
   }
 }
+
+.hidden {
+  display: none
+}

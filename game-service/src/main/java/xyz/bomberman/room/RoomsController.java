@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
+import xyz.bomberman.room.data.RoomEvent;
 
 @Controller
 @MessageMapping("game.rooms")
@@ -23,20 +24,21 @@ public class RoomsController {
 
   private final RoomsService roomsService;
 
-  @GetMapping("/")
-  ResponseEntity<Resource> game(@Value("classpath:/static/rooms.html") Resource page) {
-    return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
-  }
+//  @GetMapping("/")
+//  ResponseEntity<Resource> game(@Value("classpath:/static/index.html") Resource page) {
+//    return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
+//  }
 
-  @MessageMapping
+  @MessageMapping("list")
   public Flux<ByteBuffer> list() {
     return roomsService.list()
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
-          xyz.bomberman.room.data.RoomEvent
+          var offset = RoomEvent
               .createRoomEvent(builder, builder.createString(re.getRoom().id()),
                   (byte) re.getType().ordinal());
-          return builder.dataBuffer();
+          builder.finish(0);
+          return ByteBuffer.wrap(builder.sizedByteArray());
         });
   }
 

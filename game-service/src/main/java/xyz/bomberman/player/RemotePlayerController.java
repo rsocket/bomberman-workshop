@@ -11,16 +11,18 @@ import xyz.bomberman.game.data.Game;
 import xyz.bomberman.game.data.GameEvent;
 
 @Controller
-@MessageMapping("game.play")
+@MessageMapping
 @AllArgsConstructor
 public class RemotePlayerController {
 
   final PlayersService playersService;
 
-  @MessageMapping
-  public Flux<ByteBuffer> play(@Header("bomberman/player.id") String playerId,
+  @MessageMapping("game.play")
+  public Flux<ByteBuffer> play(
+      //@Header("bomberman/player.id") String playerId,
+      Player player, //
       Flux<ByteBuffer> inboundEvents) {
-    final Player player = playersService.find(playerId);
+    // final Player player = playersService.find(playerId);
 
     return inboundEvents.switchOnFirst(
         (signal, dataBufferFlux) -> {

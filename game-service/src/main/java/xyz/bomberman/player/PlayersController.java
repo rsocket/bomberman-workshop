@@ -19,7 +19,7 @@ class PlayersController {
   final PlayersService playersService;
 
   @ConnectMapping("login")
-  void login(@Payload String name, RSocketRequester requester) {
+  public void login(@Payload String name, RSocketRequester requester) {
     final String id = String.valueOf(UUID.randomUUID());
 
     final LocalPlayerClient localPlayerClient = new LocalPlayerClient(requester);

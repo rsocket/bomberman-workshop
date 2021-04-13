@@ -13,15 +13,19 @@ const userName = uniqueNamesGenerator({
     length: 1
 });
 
-function Rooms() {
+function meta(name) {
+    return String.fromCharCode(`game.rooms.${name}`.length) + `game.rooms.${name}`;
+}
+
+export function Rooms() {
     const [rooms, setRooms] = useState([]);
     const socket = useRef(null);
 
     useEffect(async () => {
-        const [_, rSocket] = await connect()
+        const [_, rSocket] = await connect(userName)
         socket.current = rSocket;
         rSocket.requestStream({
-            metadata: String.fromCharCode('rooms'.length) + 'rooms',
+            metadata: meta('list'),
             data: {id: userName}
         }).subscribe({
             onSubscribe(s) {
@@ -63,6 +67,11 @@ function Rooms() {
         })
     }, []);
 
+    function switchUI() {
+        document.getElementById("gamefield").className = ""
+        document.getElementById("root").className = "hidden"
+    }
+
     function createGame() {
         const rSocket = socket.current;
         const roomId = uniqueNamesGenerator({
@@ -70,7 +79,7 @@ function Rooms() {
             length: 2,
         });
         rSocket.requestResponse({
-            metadata: String.fromCharCode('createGame'.length) + 'createGame',
+            metadata: meta('create'),
             data: {userId: userName, roomId: roomId}
         }).subscribe()
     }
@@ -103,6 +112,7 @@ function Rooms() {
     return (
         <div className={"rooms"}>
             <div>Welcome, {userName}</div>
+            <button onClick={switchUI}>SWITCH UI</button><br/>
             {inAGame
                 ? <div/>
                 : <button onClick={createGame}>Create Game</button>
@@ -134,9 +144,4 @@ function Rooms() {
     );
 }
 
-ReactDOM.render(
-    <React.StrictMode>
-        <Rooms/>
-    </React.StrictMode>,
-    document.getElementById('root')
-);
+
