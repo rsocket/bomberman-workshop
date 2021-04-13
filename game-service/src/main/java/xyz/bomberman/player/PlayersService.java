@@ -29,7 +29,7 @@ public class PlayersService {
 
   public void disconnect(String id) {
     final Player player = allPlayers.remove(id);
-    if (player == null) {
+    if (player != null) {
       playersUpdates.emitNext(PlayerEvent.of(player, DISCONNECTED), FAIL_FAST);
     }
   }
