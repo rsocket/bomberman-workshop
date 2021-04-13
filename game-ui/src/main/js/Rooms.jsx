@@ -9,6 +9,7 @@ import {adjectives, colors} from "unique-names-generator";
 import {xyz} from './flatbuffers/RoomEvent_generated'
 import {flatbuffers} from "flatbuffers";
 import {Single} from "rsocket-flowable/build";
+import Game from "./Game";
 
 const {uniqueNamesGenerator, animals} = require('unique-names-generator');
 
@@ -16,10 +17,6 @@ const userName = uniqueNamesGenerator({
     dictionaries: [animals],
     length: 1
 });
-
-function meta(name) {
-    return String.fromCharCode(`game.rooms.${name}`.length) + `game.rooms.${name}`;
-}
 
 export function Rooms() {
     const [rooms, setRooms] = useState([]);
@@ -31,6 +28,9 @@ export function Rooms() {
             requestResponse(m) {
                 setUserId(m.data.toString());
                 return Single.of(m);
+            },
+            requestChannel(flowable) {
+                return switchUI(flowable);
             }
         })
         socket.current = rSocket;
@@ -84,9 +84,15 @@ export function Rooms() {
         })
     }, []);
 
-    function switchUI() {
+    function switchUI(flowable) {
+        window.userName = userName;
+        window.userId = userId;
+        var game = new Game("myCanvas", 13, 13, window.assets, "id???");
+        window.game = game;
+        document.querySelector("#lname").setAttribute("value", userName);
         document.getElementById("gamefield").className = ""
         document.getElementById("root").className = "hidden"
+        return game.start(flowable)
     }
 
     function createGame() {
@@ -134,7 +140,6 @@ export function Rooms() {
         })
 
         console.log("starting the game")
-        switchUI();
     }
 
     const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;

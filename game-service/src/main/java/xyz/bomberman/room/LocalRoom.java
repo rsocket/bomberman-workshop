@@ -39,7 +39,8 @@ public class LocalRoom implements Room {
   @Override
   public void start(Player player) {
     if (!player.id().equals(owner.id())) {
-      throw new IllegalStateException("Only owner can start the game");
+      // TODO: add an owner in the UI
+      // throw new IllegalStateException("Only owner can start the game");
     }
 
     if (playersSink.tryEmitComplete() == EmitResult.OK) {

@@ -9,13 +9,13 @@ import reactor.core.publisher.Flux;
 import xyz.bomberman.game.data.Game;
 import xyz.bomberman.game.data.GameEvent;
 
-@MessageMapping
+@MessageMapping("game.play")
 @AllArgsConstructor
 public class RemotePlayerController {
 
   final PlayersService playersService;
 
-  @MessageMapping("game.play")
+  @MessageMapping("")
   public Flux<ByteBuffer> play(
       @Header("bomberman/player.id") String playerId,
       Flux<ByteBuffer> inboundEvents

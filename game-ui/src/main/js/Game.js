@@ -35,6 +35,7 @@ import {Flowable} from "rsocket-flowable";
 import {flatbuffers} from "flatbuffers";
 
 import {xyz} from "./flatbuffers/GameEvent_generated";
+import {encodeCompositeMetadata, encodeRoute, MESSAGE_RSOCKET_ROUTING} from "rsocket-core";
 
 export default class Game {
 
@@ -96,7 +97,9 @@ export default class Game {
 
         this.callbacks = {};
 
-        this.on(REACTION, (data) => {
+        this.on(
+            xyz.bomberman.game.data.EventType.Reaction,
+            (data) => {
             this.drawReaction(data);
         });
 
@@ -113,28 +116,28 @@ export default class Game {
             this.pushPlayer(data);
         });
 
-        this.on(HURT_PLAYER, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.HurtPlayer, (data) => {
             this.hurtPlayer(data);
         });
 
         // receive direction changes
-        this.on(CHANGE_DIRECTION, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.ChangeDirection, (data) => {
             this.changeDirection(data)
         });
 
         // receive enemy player movements
-        this.on(MOVE_PLAYER, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.MovePlayer, (data) => {
             this.moveEnemy(data);
         });
 
         // player grabbed item
-        this.on(GRAB_ITEM, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.GrabItem, (data) => {
             this.pickUpItem(data);
         });
 
         // receive bombs set by enemies
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.on(PLACE_BOMB, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.PlaceBomb, (data) => {
             this.receiveBomb(data);
         });
 
@@ -145,13 +148,13 @@ export default class Game {
         });
 
         // receive walls set by enemies
-        this.on(PLACE_WALL, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.PlaceWall, (data) => {
             this.receiveWall(data);
         });
 
         // update enemy inventory
         // {id: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
-        this.on(UPDATE_INVENTORY, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.UpdateInventory, (data) => {
             if (data.id !== this.id) {
                 try {
                     document.getElementById(data.id + 'BombText').innerText = data.amountBombs;
@@ -164,16 +167,19 @@ export default class Game {
         });
 
         // update remaining players
-        this.on(DELETE_PLAYER, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.DeletePlayer, (data) => {
             this.deletePlayer(data);
         });
 
 
 
 
-        this.initRsocket();
         // START GAME
         this.startAnimating();
+    }
+
+    start(flowable) {
+        return this.initRsocket(flowable);
     }
 
 
@@ -181,9 +187,9 @@ export default class Game {
         this.callbacks[type] = callback;
     }
 
-    async initRsocket() {
+    initRsocket(flowable) {
         const callbacks = this.callbacks;
-        const [wsClient, rsocket] = await connect(this.id);
+        const [wsClient, rsocket] = [window.wsClient, window.rsocket];
         const self = this;
         wsClient.connectionStatus().subscribe({
             onSubscribe(s) {
@@ -193,7 +199,25 @@ export default class Game {
                 console.log("status: " + t.kind)
             }
         })
-        rsocket.requestChannel(new Flowable(subscriber => {
+        flowable.subscribe({
+            onSubscribe(s) {
+                s.request(2147483642)
+            },
+            onNext(t) {
+                const type = t.data.eventType;
+                console.log("got: " + type)
+                var event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
+                //callbacks[event.eventType()](event.eventType());
+            },
+            onError(err) {
+                console.error(err);
+                self.deletePlayer({id: self.id});
+            },
+            onComplete() {
+                console.log("complete?")
+            }
+        })
+        return new Flowable(subscriber => {
             console.log("subscribing")
             subscriber.onSubscribe({
                 request(n) {
@@ -205,43 +229,35 @@ export default class Game {
             });
             this.rsocketEmit = (type, builderFunction) => {
                 const builder = new flatbuffers.Builder()
-                xyz.bomberman.game.data.GameEvent.createGameEvent(
-                    builder, type, builderFunction(builder)
+                var gameEventOffset = xyz.bomberman.game.data.GameEvent.createGameEvent(
+                    builder,
+                    type,
+                    builderFunction(builder)
                 )
-                const data = Buffer.from(builder.bb.bytes());
+                xyz.bomberman.game.data.GameEvent.finishGameEventBuffer(builder, gameEventOffset);
+                const bytes = builder.asUint8Array();
+                console.log(bytes)
+                const data = Buffer.from(bytes);
                 subscriber.onNext({
-                    metadata: String.fromCharCode('game.play'.length) + 'game.play',
+                    metadata: encodeCompositeMetadata([
+                        [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.play`)],
+                    ]),
                     data
                 })
             };
-            const urlParams = new URLSearchParams(window.location.search);
-            const gameId = urlParams.get('id');
-            this.emit(xyz.bomberman.game.data.EventType.LoginPlayerEvent,
-                (builder) => {
-                    xyz.bomberman.game.data.LoginPlayerEvent.createLoginPlayerEvent(
-                        builder,
-                        this.id,
-                        gameId
-                    );
-            });
-        }))
-            .subscribe({
-                onSubscribe(s) {
-                    s.request(2147483642)
-                },
-                onNext(t) {
-                    const type = t.data.eventType;
-                    console.log("got: " + type)
-                    callbacks[type](t.data);
-                },
-                onError(err) {
-                    console.error(err);
-                    self.deletePlayer({id: self.id});
-                },
-                onComplete() {
-                    console.log("complete?")
-                }
-            })
+            const userId = window.userId;
+            const gameId = window.gameId;
+
+
+            // this.emit(xyz.bomberman.game.data.EventType.LoginPlayerEvent,
+            //     (builder) => {
+            //         xyz.bomberman.game.data.LoginPlayerEvent.createLoginPlayerEvent(
+            //             builder,
+            //             builder.createString(this.id),
+            //             builder.createString(gameId)
+            //         );
+            // });
+        })
     }
 
 
@@ -259,7 +275,15 @@ export default class Game {
      * all broadcast functions are being evoked by Player.js
      */
     broadcastReaction(reaction) {
-        this.emit(REACTION, {id:this.id, reaction: reaction});
+        console.log(reaction)
+        // {id:this.id, reaction: reaction}
+        this.emit(xyz.bomberman.game.data.EventType.Reaction, builder => {
+            return xyz.bomberman.game.data.ReactionEvent.createReactionEvent(
+                builder,
+                builder.createString(this.id),
+                builder.createString(reaction),
+            );
+        });
     }
 
     broadcastPosition(position) {

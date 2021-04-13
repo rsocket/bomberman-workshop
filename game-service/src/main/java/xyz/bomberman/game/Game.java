@@ -9,10 +9,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.flatbuffers.FlatBufferBuilder;
+import com.google.flatbuffers.Table;
 import reactor.core.publisher.Sinks;
 import xyz.bomberman.controllers.dto.Event;
 import xyz.bomberman.game.data.EventType;
 import xyz.bomberman.game.data.GameEvent;
+import xyz.bomberman.game.data.ReactionEvent;
 import xyz.bomberman.room.data.RoomEvent;
 
 public class Game {
@@ -75,16 +77,16 @@ public class Game {
         xyz.bomberman.game.data.Game.createWallsVector(
             builder,
             gameWalls.stream()
-              .mapToInt(w -> {
-                var idOffset = builder.createString(w.wallId);
-                xyz.bomberman.game.data.Wall.startWall(builder);
-                xyz.bomberman.game.data.Wall.addId(builder, idOffset);
-                var positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, w.x, w.y);
-                xyz.bomberman.game.data.Wall.addPosition(builder, positionOffset);
-                xyz.bomberman.game.data.Wall.addIsDestructible(builder, w.isDestructible);
-                return xyz.bomberman.game.data.Wall.endWall(builder);
-              })
-              .toArray()
+                .mapToInt(w -> {
+                  var idOffset = builder.createString(w.wallId);
+                  xyz.bomberman.game.data.Wall.startWall(builder);
+                  xyz.bomberman.game.data.Wall.addId(builder, idOffset);
+                  var positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, w.x, w.y);
+                  xyz.bomberman.game.data.Wall.addPosition(builder, positionOffset);
+                  xyz.bomberman.game.data.Wall.addIsDestructible(builder, w.isDestructible);
+                  return xyz.bomberman.game.data.Wall.endWall(builder);
+                })
+                .toArray()
         )
     );
     builder.finish(offset);
@@ -97,11 +99,13 @@ public class Game {
   public void handleEvent(GameEvent gameEvent) {
 
     switch (gameEvent.eventType()) {
-//      case EventType.Reaction: {
+      case EventType.Reaction: {
 //        var data = (Event.ReactionEvent) event;
 //        broadcast(game, in, data);
-//        break;
-//      }
+        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
+        System.out.println("Reaction: " + event.reaction());
+        break;
+      }
 //      case EventType.DeleteWall: {
 //        var data = (Event.DeleteWallEvent) event;
 //        var wallId = (String) data.wallId;
@@ -209,7 +213,7 @@ public class Game {
 //      }
       default:
         System.out.println("unknown event: " + gameEvent.eventType());
-        //throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
+        // throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
     }
   }
 
