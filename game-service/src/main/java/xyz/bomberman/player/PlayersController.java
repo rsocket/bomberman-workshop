@@ -28,8 +28,8 @@ class PlayersController {
 
   final PlayersService playersService;
 
-  @ConnectMapping("login")
-  public void login(@Payload String name, RSocketRequester requester) {
+  @MessageMapping("login")
+  public String login(@Payload String name, RSocketRequester requester) {
     final String id = String.valueOf(UUID.randomUUID());
 
     final LocalPlayerClient localPlayerClient = new LocalPlayerClient(requester);
@@ -38,7 +38,6 @@ class PlayersController {
     this.playersService.register(player);
 
     final RSocket rsocket = Objects.requireNonNull(requester.rsocket());
-    rsocket.requestResponse(ByteBufPayload.create(id)).subscribe();
 
     ((PlayerAwareRSocket) rsocket).player = player;
 
@@ -46,6 +45,8 @@ class PlayersController {
         .onClose()
         .doFinally(__ -> this.playersService.disconnect(id))
         .subscribe();
+
+    return id;
   }
 
   @MessageMapping

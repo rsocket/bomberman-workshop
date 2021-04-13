@@ -25,61 +25,70 @@ export function Rooms() {
 
     useEffect(async () => {
         const [_, rSocket] = await connect(userName, {
-            requestResponse(m) {
-                setUserId(m.data.toString());
-                return Single.of(m);
-            },
             requestChannel(flowable) {
                 return switchUI(flowable);
             }
         })
-        socket.current = rSocket;
-        rSocket.requestStream({
+        rSocket.requestResponse({
             metadata: encodeCompositeMetadata([
-                [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms')],
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.players.login')],
             ]),
-        }).subscribe({
-            onSubscribe(s) {
-                s.request(2147483642)
-            },
-            onNext(roomEventBuffer) {
-                const dataBuf = flatbuffers.ByteBuffer.allocate(roomEventBuffer.data);
-                const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
-                const eventType = event.type();
-                const roomId = event.id();
-                const players = [...new Array(event.playersLength()).keys()]
-                    .map(i => {
-                        const player = event.players(i);
-                        return {
-                            id: player.id(),
-                            name: player.name(),
-                        };
-                    })
-                console.log(players);
-                // update all displayed rooms
-                setRooms(rooms => {
-                    console.log(rooms);
-                    if (eventType === xyz.bomberman.room.data.EventType.Added) {
-                        return [{
-                            id: roomId,
-                            players: players
-                        }, ...rooms]
-                    } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
-                        return [{
-                            id: roomId,
-                            players: players
-                        }, ...rooms.filter(room => room.id !== roomId)]
-                    }
+            data: Buffer.from(userName)
+        })
+        .subscribe({
+            onComplete: (payload) => {
+                socket.current = rSocket;
 
-                    // remove empty rooms
-                    return rooms.filter(room => room.id !== roomId);
-                });
-            },
-            onError(err) {
-                console.error(err);
-            },
-            onComplete() {
-                console.log("complete")
+                setUserId(payload.data.toString());
+
+                rSocket.requestStream({
+                    metadata: encodeCompositeMetadata([
+                        [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms')],
+                    ]),
+                }).subscribe({
+                    onSubscribe(s) {
+                        s.request(2147483642)
+                    },
+                    onNext(roomEventBuffer) {
+                        const dataBuf = flatbuffers.ByteBuffer.allocate(roomEventBuffer.data);
+                        const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
+                        const eventType = event.type();
+                        const roomId = event.id();
+                        const players = [...new Array(event.playersLength()).keys()]
+                        .map(i => {
+                            const player = event.players(i);
+                            return {
+                                id: player.id(),
+                                name: player.name(),
+                            };
+                        })
+                        console.log(players);
+                        // update all displayed rooms
+                        setRooms(rooms => {
+                            console.log(rooms);
+                            if (eventType === xyz.bomberman.room.data.EventType.Added) {
+                                return [{
+                                    id: roomId,
+                                    players: players
+                                }, ...rooms]
+                            } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
+                                return [{
+                                    id: roomId,
+                                    players: players
+                                }, ...rooms.filter(room => room.id !== roomId)]
+                            }
+
+                            // remove empty rooms
+                            return rooms.filter(room => room.id !== roomId);
+                        });
+                    },
+                    onError(err) {
+                        console.error(err);
+                    },
+                    onComplete() {
+                        console.log("complete")
+                    }
+                })
             }
         })
     }, []);

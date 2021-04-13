@@ -18,12 +18,6 @@ export async function connect(userId, responder) {
             lifetime: 90000,
             dataMimeType: 'application/octet-stream',
             metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
-            payload: {
-                metadata: encodeCompositeMetadata([
-                    [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.players.login')],
-                ]),
-                data: Buffer.from(userId)
-            }
         },
         responder: responder,
         transport: wsClient,
