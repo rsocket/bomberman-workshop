@@ -7,6 +7,8 @@ import io.rsocket.RSocket;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.UUID;
+
+import io.rsocket.util.ByteBufPayload;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -36,6 +38,7 @@ class PlayersController {
     this.playersService.register(player);
 
     final RSocket rsocket = Objects.requireNonNull(requester.rsocket());
+    rsocket.requestResponse(ByteBufPayload.create(id)).subscribe();
 
     ((PlayerAwareRSocket) rsocket).player = player;
 

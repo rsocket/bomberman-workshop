@@ -8,6 +8,7 @@ import {connect} from "./RSocket.js"
 import {adjectives, colors} from "unique-names-generator";
 import {xyz} from './flatbuffers/RoomEvent_generated'
 import {flatbuffers} from "flatbuffers";
+import {Single} from "rsocket-flowable/build";
 
 const {uniqueNamesGenerator, animals} = require('unique-names-generator');
 
@@ -22,10 +23,16 @@ function meta(name) {
 
 export function Rooms() {
     const [rooms, setRooms] = useState([]);
+    const [userId, setUserId] = useState(undefined);
     const socket = useRef(null);
 
     useEffect(async () => {
-        const [_, rSocket] = await connect(userName)
+        const [_, rSocket] = await connect(userName, {
+            requestResponse(m) {
+                setUserId(m.data.toString());
+                return Single.of(m);
+            }
+        })
         socket.current = rSocket;
         rSocket.requestStream({
             metadata: encodeCompositeMetadata([
@@ -110,15 +117,16 @@ export function Rooms() {
     function startGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
-            metadata: String.fromCharCode('startGame'.length) + 'startGame',
-            data: {roomId: roomId}
+            metadata: encodeCompositeMetadata([
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.start`)],
+            ]),
         }).subscribe()
     }
 
-    const inAGame = rooms.filter(room => room.users.includes(userName)).length > 0;
+    const inAGame = rooms.filter(room => room.users.includes(userId)).length > 0;
     return (
         <div className={"rooms"}>
-            <div>Welcome, {userName}</div>
+            <div>Welcome, {userName} ({userId})</div>
             <button onClick={switchUI}>SWITCH UI</button><br/>
             {inAGame
                 ? <div/>
@@ -132,7 +140,7 @@ export function Rooms() {
                                 <div>Room: {room.id}</div>
                                 <div>Players: {room.users.join(",")}</div>
                             </div>
-                            {room.users.includes(userName)
+                            {room.users.includes(userId)
                                 ? <div style={{float: "left"}}>
                                     <button onClick={() => leaveGame(room.id)}>Leave</button>
                                     <button onClick={() => startGame(room.id)}>Start</button>

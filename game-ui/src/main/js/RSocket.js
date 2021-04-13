@@ -1,7 +1,7 @@
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import {BufferEncoders, RSocketClient, MESSAGE_RSOCKET_COMPOSITE_METADATA, MESSAGE_RSOCKET_ROUTING, encodeCompositeMetadata, encodeRoute} from "rsocket-core";
 
-export async function connect(userId) {
+export async function connect(userId, responder) {
     console.log("connecting")
     const port = window.location.port ? `:${window.location.port}` : "";
     const isSecure = window.location.protocol === 'https:';
@@ -22,8 +22,9 @@ export async function connect(userId) {
                 data: Buffer.from(userId)
             }
         },
-        responders: {
-            requestChannel: flowable => flowable
+        responder: {
+            requestChannel: flowable => flowable,
+            ...responder,
         },
         transport: wsClient,
     });
