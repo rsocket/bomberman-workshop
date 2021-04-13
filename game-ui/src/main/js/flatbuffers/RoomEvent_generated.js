@@ -45,6 +45,114 @@ xyz.bomberman.room.data.EventTypeName = {
 /**
  * @constructor
  */
+xyz.bomberman.room.data.Player = function() {
+  /**
+   * @type {flatbuffers.ByteBuffer}
+   */
+  this.bb = null;
+
+  /**
+   * @type {number}
+   */
+  this.bb_pos = 0;
+};
+
+/**
+ * @param {number} i
+ * @param {flatbuffers.ByteBuffer} bb
+ * @returns {xyz.bomberman.room.data.Player}
+ */
+xyz.bomberman.room.data.Player.prototype.__init = function(i, bb) {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {xyz.bomberman.room.data.Player=} obj
+ * @returns {xyz.bomberman.room.data.Player}
+ */
+xyz.bomberman.room.data.Player.getRootAsPlayer = function(bb, obj) {
+  return (obj || new xyz.bomberman.room.data.Player).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.ByteBuffer} bb
+ * @param {xyz.bomberman.room.data.Player=} obj
+ * @returns {xyz.bomberman.room.data.Player}
+ */
+xyz.bomberman.room.data.Player.getSizePrefixedRootAsPlayer = function(bb, obj) {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new xyz.bomberman.room.data.Player).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
+ */
+xyz.bomberman.room.data.Player.prototype.id = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 4);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
+ */
+xyz.bomberman.room.data.Player.prototype.name = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ */
+xyz.bomberman.room.data.Player.startPlayer = function(builder) {
+  builder.startObject(2);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} idOffset
+ */
+xyz.bomberman.room.data.Player.addId = function(builder, idOffset) {
+  builder.addFieldOffset(0, idOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} nameOffset
+ */
+xyz.bomberman.room.data.Player.addName = function(builder, nameOffset) {
+  builder.addFieldOffset(1, nameOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.room.data.Player.endPlayer = function(builder) {
+  var offset = builder.endObject();
+  return offset;
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} idOffset
+ * @param {flatbuffers.Offset} nameOffset
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.room.data.Player.createPlayer = function(builder, idOffset, nameOffset) {
+  xyz.bomberman.room.data.Player.startPlayer(builder);
+  xyz.bomberman.room.data.Player.addId(builder, idOffset);
+  xyz.bomberman.room.data.Player.addName(builder, nameOffset);
+  return xyz.bomberman.room.data.Player.endPlayer(builder);
+}
+
+/**
+ * @constructor
+ */
 xyz.bomberman.room.data.RoomEvent = function() {
   /**
    * @type {flatbuffers.ByteBuffer}
@@ -121,12 +229,12 @@ xyz.bomberman.room.data.RoomEvent.prototype.id = function(optionalEncoding) {
 
 /**
  * @param {number} index
- * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array}
+ * @param {xyz.bomberman.room.data.Player=} obj
+ * @returns {xyz.bomberman.room.data.Player}
  */
-xyz.bomberman.room.data.RoomEvent.prototype.players = function(index, optionalEncoding) {
+xyz.bomberman.room.data.RoomEvent.prototype.players = function(index, obj) {
   var offset = this.bb.__offset(this.bb_pos, 8);
-  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+  return offset ? (obj || new xyz.bomberman.room.data.Player).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
 
 /**

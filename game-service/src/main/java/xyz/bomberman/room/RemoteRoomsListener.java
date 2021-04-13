@@ -45,7 +45,7 @@ public class RemoteRoomsListener extends BaseSubscriber<DataBuffer> {
       final String roomId = roomEvent.id();
       final Set<Player> players = new HashSet<>();
       for (int i = 0; i < roomEvent.playersLength(); i++) {
-        final Player player = playersService.find(roomEvent.players(i));
+        final Player player = playersService.find(roomEvent.players(i).id());
         players.add(player);
       }
       final RemoteRoom remoteRoom = new RemoteRoom(roomId, players, remoteRoomClient);

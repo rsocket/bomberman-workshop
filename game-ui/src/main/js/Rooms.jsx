@@ -47,20 +47,27 @@ export function Rooms() {
                 const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
                 const eventType = event.type();
                 const roomId = event.id();
-                const playersIds = [...new Array(event.playersLength()).keys()].map(i => event.players(i))
-                console.log(event);
+                const players = [...new Array(event.playersLength()).keys()]
+                    .map(i => {
+                        const player = event.players(i);
+                        return {
+                            id: player.id(),
+                            name: player.name(),
+                        };
+                    })
+                console.log(players);
                 // update all displayed rooms
                 setRooms(rooms => {
                     console.log(rooms);
                     if (eventType === xyz.bomberman.room.data.EventType.Added) {
                         return [{
                             id: roomId,
-                            users: playersIds
+                            players: players
                         }, ...rooms]
                     } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
                         return [{
                             id: roomId,
-                            users: playersIds
+                            players: players
                         }, ...rooms.filter(room => room.id !== roomId)]
                     }
 
@@ -123,7 +130,7 @@ export function Rooms() {
         }).subscribe()
     }
 
-    const inAGame = rooms.filter(room => room.users.includes(userId)).length > 0;
+    const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;
     return (
         <div className={"rooms"}>
             <div>Welcome, {userName} ({userId})</div>
@@ -138,14 +145,14 @@ export function Rooms() {
                         <div>
                             <div className={"room"}>
                                 <div>Room: {room.id}</div>
-                                <div>Players: {room.users.join(",")}</div>
+                                <div>Players: {room.players.map(p => p.name).join(", ")}</div>
                             </div>
-                            {room.users.includes(userId)
+                            {room.players.map(p => p.id).includes(userId)
                                 ? <div style={{float: "left"}}>
                                     <button onClick={() => leaveGame(room.id)}>Leave</button>
                                     <button onClick={() => startGame(room.id)}>Start</button>
                                 </div>
-                                : (inAGame || room.users.length >= 4
+                                : (inAGame || room.players.length >= 4
                                     ? <div/>
                                     : <button onClick={() => joinGame(room.id)}>Join</button>)
                             }

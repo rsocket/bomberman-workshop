@@ -2,10 +2,15 @@ namespace xyz.bomberman.room.data;
 
 enum EventType:byte { Added = 0, Updated, Removed = 2 }
 
+table Player {
+  id: string;
+  name: string;
+}
+
 table RoomEvent {
   type: EventType;
   id: string;
-  players: [string];
+  players: [Player];
 }
 
 root_type RoomEvent;

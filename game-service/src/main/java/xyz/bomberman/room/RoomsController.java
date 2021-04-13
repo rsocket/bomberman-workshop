@@ -44,7 +44,11 @@ public class RoomsController {
                       re.getRoom()
                         .players()
                         .stream()
-                        .mapToInt(p -> builder.createString(p.id()))
+                        .mapToInt(p -> xyz.bomberman.player.data.Player.createPlayer(
+                            builder,
+                            builder.createString(p.id()),
+                            builder.createString(p.name())
+                        ))
                         .toArray()
                   )
               )
