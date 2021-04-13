@@ -95,9 +95,7 @@ export function Rooms() {
     }, []);
 
     function switchUI(flowable) {
-        window.userName = userName;
-        window.userId = userId;
-        var game = new Game("myCanvas", 13, 13, window.assets, "id???");
+        var game = new Game("myCanvas", 13, 13, window.assets, userName);
         window.game = game;
         document.querySelector("#lname").setAttribute("value", userName);
         document.getElementById("gamefield").className = ""
