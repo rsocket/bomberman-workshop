@@ -30,6 +30,11 @@ public class RemoteRoomsController {
                       builder,
                       (byte) re.getType().ordinal(),
                       builder.createString(re.getRoom().id()),
+                      xyz.bomberman.player.data.Player.createPlayer(
+                          builder,
+                          builder.createString(re.getRoom().owner().id()),
+                          builder.createString(re.getRoom().owner().name())
+                      ),
                       RoomEvent.createPlayersVector(
                           builder,
                           re.getRoom()

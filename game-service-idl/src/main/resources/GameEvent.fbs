@@ -1,6 +1,5 @@
 namespace xyz.bomberman.game.data;
 
-
 struct Position {
   x: int32;
   y: int32;
@@ -110,7 +109,7 @@ union EventType {
     Reaction: ReactionEvent,
     ChangeDirection: ChangeDirectionEvent,
 
-    GrabItem: GrabItemEvent,
+    CreateItem: CreateItemEvent,
 
     HurtPlayer: HurtPlayerEvent,
     MovePlayer: MovePlayerEvent,
@@ -122,7 +121,6 @@ union EventType {
 
     PlaceWall: PlaceWallEvent,
     DeleteWall: DeleteWallEvent,
-    Game: Game,
 }
 
 table GameEvent {

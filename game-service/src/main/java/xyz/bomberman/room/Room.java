@@ -9,6 +9,8 @@ public interface Room {
 
   String id();
 
+  Player owner();
+
   Set<Player> players();
 
   void start(Player player);

@@ -9,12 +9,18 @@ import xyz.bomberman.player.Player;
 public class RemoteRoom implements Room {
 
   final String id;
+  final Player owner;
   final Set<Player> players;
   final RemoteRoomClient remoteRoomClient;
 
   @Override
   public String id() {
     return id;
+  }
+
+  @Override
+  public Player owner() {
+    return owner;
   }
 
   @Override

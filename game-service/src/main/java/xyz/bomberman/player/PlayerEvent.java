@@ -9,7 +9,7 @@ public class PlayerEvent {
   Player player;
   Type type;
 
-  enum Type {
+  public enum Type {
     CONNECTED,
     DISCONNECTED
   }

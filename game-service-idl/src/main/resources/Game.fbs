@@ -1,0 +1,34 @@
+namespace xyz.bomberman.game.data;
+
+struct Position {
+  x: int32;
+  y: int32;
+}
+
+table Item {
+  position: Position;
+  type: string;
+}
+
+table Wall {
+  id: string;
+  position: Position;
+  isDestructible: bool;
+}
+
+table Player {
+  id: string;
+  position: Position;
+  direction: string;
+  amountBombs: int32;
+  amountWalls: int32;
+  health: int32;
+}
+
+table Game {
+  players: [Player];
+  items: [Item];
+  walls: [Wall];
+}
+
+root_type Game;

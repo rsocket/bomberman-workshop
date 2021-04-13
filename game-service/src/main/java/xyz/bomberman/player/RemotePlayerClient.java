@@ -18,7 +18,7 @@ class RemotePlayerClient {
   final RSocketRequester requester;
   final PlayersService playersService;
 
-  Flux<GameEvent> play(String playerId, GameEvent game, Flux<GameEvent> dataBufferFlux) {
+  Flux<GameEvent> play(String playerId, Game game, Flux<GameEvent> dataBufferFlux) {
     return requester.route("game.play")
         .metadata(serviceId, DESTINATION_ID_MIMETYPE)
         .metadata(playerId, PLAYER_ID_MIMETYPE)

@@ -10,6 +10,7 @@ table Player {
 table RoomEvent {
   type: EventType;
   id: string;
+  owner: Player;
   players: [Player];
 }
 

@@ -35,7 +35,7 @@ task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
     language = 'js'
     inputDir = file("$buildDir/resources/main")
     outputDir = file("$projectDir/src/main/js/flatbuffers")
-    extraArgs = "--gen-mutable"
+    extraArgs = "--gen-mutable --es6-js-export"
 }
 
 yarn_run_webpack.dependsOn(createFlatBuffers)

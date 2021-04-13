@@ -31,15 +31,14 @@ xyz.bomberman.game.data.EventType = {
   NONE: 0,
   Reaction: 1,
   ChangeDirection: 2,
-  GrabItem: 3,
+  CreateItem: 3,
   HurtPlayer: 4,
   MovePlayer: 5,
   DeletePlayer: 6,
   PlaceBomb: 7,
   UpdateInventory: 8,
   PlaceWall: 9,
-  DeleteWall: 10,
-  Game: 11
+  DeleteWall: 10
 };
 
 /**
@@ -49,15 +48,14 @@ xyz.bomberman.game.data.EventTypeName = {
   '0': 'NONE',
   '1': 'Reaction',
   '2': 'ChangeDirection',
-  '3': 'GrabItem',
+  '3': 'CreateItem',
   '4': 'HurtPlayer',
   '5': 'MovePlayer',
   '6': 'DeletePlayer',
   '7': 'PlaceBomb',
   '8': 'UpdateInventory',
   '9': 'PlaceWall',
-  '10': 'DeleteWall',
-  '11': 'Game'
+  '10': 'DeleteWall'
 };
 
 /**
@@ -2914,5 +2912,5 @@ xyz.bomberman.game.data.Game.createGame = function(builder, playersOffset, items
   return xyz.bomberman.game.data.Game.endGame(builder);
 }
 
-// Exports for Node.js and RequireJS
-this.xyz = xyz;
+// Exports for ECMAScript6 Modules
+export {xyz};

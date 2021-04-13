@@ -28,7 +28,7 @@ public class RemotePlayerController {
           final ByteBuffer byteBuffer = signal.get();
 
           if (byteBuffer != null) {
-            final GameEvent game = GameEvent.getRootAsGameEvent(byteBuffer);
+            final Game game = Game.getRootAsGame(byteBuffer);
             return player.play(game, dataBufferFlux.skip(1).map(GameEvent::getRootAsGameEvent))
                 .map(Table::getByteBuffer);
           }

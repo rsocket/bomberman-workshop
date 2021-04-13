@@ -228,12 +228,21 @@ xyz.bomberman.room.data.RoomEvent.prototype.id = function(optionalEncoding) {
 };
 
 /**
+ * @param {xyz.bomberman.room.data.Player=} obj
+ * @returns {xyz.bomberman.room.data.Player|null}
+ */
+xyz.bomberman.room.data.RoomEvent.prototype.owner = function(obj) {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? (obj || new xyz.bomberman.room.data.Player).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+};
+
+/**
  * @param {number} index
  * @param {xyz.bomberman.room.data.Player=} obj
  * @returns {xyz.bomberman.room.data.Player}
  */
 xyz.bomberman.room.data.RoomEvent.prototype.players = function(index, obj) {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? (obj || new xyz.bomberman.room.data.Player).__init(this.bb.__indirect(this.bb.__vector(this.bb_pos + offset) + index * 4), this.bb) : null;
 };
 
@@ -241,7 +250,7 @@ xyz.bomberman.room.data.RoomEvent.prototype.players = function(index, obj) {
  * @returns {number}
  */
 xyz.bomberman.room.data.RoomEvent.prototype.playersLength = function() {
-  var offset = this.bb.__offset(this.bb_pos, 8);
+  var offset = this.bb.__offset(this.bb_pos, 10);
   return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
 
@@ -249,7 +258,7 @@ xyz.bomberman.room.data.RoomEvent.prototype.playersLength = function() {
  * @param {flatbuffers.Builder} builder
  */
 xyz.bomberman.room.data.RoomEvent.startRoomEvent = function(builder) {
-  builder.startObject(3);
+  builder.startObject(4);
 };
 
 /**
@@ -270,10 +279,18 @@ xyz.bomberman.room.data.RoomEvent.addId = function(builder, idOffset) {
 
 /**
  * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} ownerOffset
+ */
+xyz.bomberman.room.data.RoomEvent.addOwner = function(builder, ownerOffset) {
+  builder.addFieldOffset(2, ownerOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} playersOffset
  */
 xyz.bomberman.room.data.RoomEvent.addPlayers = function(builder, playersOffset) {
-  builder.addFieldOffset(2, playersOffset, 0);
+  builder.addFieldOffset(3, playersOffset, 0);
 };
 
 /**
@@ -326,16 +343,18 @@ xyz.bomberman.room.data.RoomEvent.finishSizePrefixedRoomEventBuffer = function(b
  * @param {flatbuffers.Builder} builder
  * @param {xyz.bomberman.room.data.EventType} type
  * @param {flatbuffers.Offset} idOffset
+ * @param {flatbuffers.Offset} ownerOffset
  * @param {flatbuffers.Offset} playersOffset
  * @returns {flatbuffers.Offset}
  */
-xyz.bomberman.room.data.RoomEvent.createRoomEvent = function(builder, type, idOffset, playersOffset) {
+xyz.bomberman.room.data.RoomEvent.createRoomEvent = function(builder, type, idOffset, ownerOffset, playersOffset) {
   xyz.bomberman.room.data.RoomEvent.startRoomEvent(builder);
   xyz.bomberman.room.data.RoomEvent.addType(builder, type);
   xyz.bomberman.room.data.RoomEvent.addId(builder, idOffset);
+  xyz.bomberman.room.data.RoomEvent.addOwner(builder, ownerOffset);
   xyz.bomberman.room.data.RoomEvent.addPlayers(builder, playersOffset);
   return xyz.bomberman.room.data.RoomEvent.endRoomEvent(builder);
 }
 
-// Exports for Node.js and RequireJS
-this.xyz = xyz;
+// Exports for ECMAScript6 Modules
+export {xyz};

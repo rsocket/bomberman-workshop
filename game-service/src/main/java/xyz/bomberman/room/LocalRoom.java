@@ -25,6 +25,11 @@ public class LocalRoom implements Room {
   }
 
   @Override
+  public Player owner() {
+    return owner;
+  }
+
+  @Override
   public Set<Player> players() {
     return players;
   }

@@ -362,5 +362,5 @@ xyz.bomberman.player.data.PlayerEvent.createPlayerEvent = function(builder, even
   return xyz.bomberman.player.data.PlayerEvent.endPlayerEvent(builder);
 }
 
-// Exports for Node.js and RequireJS
-this.xyz = xyz;
+// Exports for ECMAScript6 Modules
+export {xyz};

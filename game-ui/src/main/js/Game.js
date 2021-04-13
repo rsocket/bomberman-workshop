@@ -98,30 +98,53 @@ export default class Game {
         this.callbacks = {};
 
         this.on(
-            xyz.bomberman.game.data.EventType.Reaction,
-            (data) => {
-            this.drawReaction(data);
-        });
+            "game.start",
+            (game) => {
+                console.log("start game with " + game.playersLength() + "players")
+
+                const wallsLength = game.wallsLength();
+                for (let i = 0; i < wallsLength; i++) {
+                    const wall = game.walls(i);
+                    const position = wall.position();
+                    this.walls.push(new Wall({x: position.x(), y: position.y()}, 1, wall.isDestructible(), assets, 40, wall.id()));
+                }
+
+                const playersLength = game.playersLength();
+                for (let i = 0; i < playersLength; i++) {
+                    const player = game.players(i);
+                    const position = player.position();
+                    this.pushPlayer({
+                      id: player.id(),
+                      x: position.x(),
+                      y: position.y(),
+                      direction: player.direction(),
+                      amountWalls: player.amountWalls(),
+                      amountBombs: player.amountBombs(),
+                      health: player.health()
+                    });
+                }
+            });
 
         this.on(
-            xyz.bomberman.game.data.EventType.Game,
+            xyz.bomberman.game.data.EventType.Reaction,
             (data) => {
-                var game = data.event(new xyz.bomberman.game.data.Game())
-                console.log("start game with " + game.playersLength() + "players")
-            });
+                const reactionEvent = data.event(new xyz.bomberman.game.data.ReactionEvent())
+                this.drawReaction({id: reactionEvent.id(), reaction: reactionEvent.reaction()});
+            },
+        );
 
-        // after logging in your player, the server will send you all generated walls
-        this.on(CREATE_WALLS, (wallEvent) => {
-            const walls = wallEvent.walls;
-            walls.forEach(wall => {
-                let position = {x: wall.x, y: wall.y};
-                this.walls.push(new Wall(position, 1, wall.isDestructible, assets, 40, wall.wallId));
-            });
-        });
+        // // after logging in your player, the server will send you all generated walls
+        // this.on(CREATE_WALLS, (wallEvent) => {
+        //     const walls = wallEvent.walls;
+        //     walls.forEach(wall => {
+        //         let position = {x: wall.x, y: wall.y};
+        //         this.walls.push(new Wall(position, 1, wall.isDestructible, assets, 40, wall.wallId));
+        //     });
+        // });
 
-        this.on(CREATE_PLAYER, (data) => {
-            this.pushPlayer(data);
-        });
+        // this.on(CREATE_PLAYER, (data) => {
+        //
+        // });
 
         this.on(xyz.bomberman.game.data.EventType.HurtPlayer, (data) => {
             this.hurtPlayer(data);
@@ -206,11 +229,18 @@ export default class Game {
                 console.log("status: " + t.kind)
             }
         })
+        let firstEvent = true;
         flowable.subscribe({
             onSubscribe(s) {
                 s.request(2147483642)
             },
             onNext(t) {
+                if (firstEvent) {
+                    firstEvent = false;
+                    const game = xyz.bomberman.game.data.Game.getRootAsGame(new flatbuffers.ByteBuffer(t.data));
+                    callbacks['game.start'](game)
+                    return;
+                }
                 const event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
                 console.log("got: " + event.eventType())
                 callbacks[event.eventType()](event);
