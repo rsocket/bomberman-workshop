@@ -38,7 +38,8 @@ xyz.bomberman.game.data.EventType = {
   PlaceBomb: 7,
   UpdateInventory: 8,
   PlaceWall: 9,
-  DeleteWall: 10
+  DeleteWall: 10,
+  Game: 11
 };
 
 /**
@@ -55,7 +56,8 @@ xyz.bomberman.game.data.EventTypeName = {
   '7': 'PlaceBomb',
   '8': 'UpdateInventory',
   '9': 'PlaceWall',
-  '10': 'DeleteWall'
+  '10': 'DeleteWall',
+  '11': 'Game'
 };
 
 /**

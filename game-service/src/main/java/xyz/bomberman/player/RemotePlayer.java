@@ -22,7 +22,7 @@ public class RemotePlayer implements Player {
   }
 
   @Override
-  public Flux<GameEvent> play(Game game, Flux<GameEvent> otherPlayersEvents) {
+  public Flux<GameEvent> play(GameEvent game, Flux<GameEvent> otherPlayersEvents) {
     return remotePlayerClient.play(id, game, otherPlayersEvents);
   }
 }

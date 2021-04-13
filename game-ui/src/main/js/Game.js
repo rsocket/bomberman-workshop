@@ -103,6 +103,13 @@ export default class Game {
             this.drawReaction(data);
         });
 
+        this.on(
+            xyz.bomberman.game.data.EventType.Game,
+            (data) => {
+                var game = data.event(new xyz.bomberman.game.data.Game())
+                console.log("start game with " + game.playersLength() + "players")
+            });
+
         // after logging in your player, the server will send you all generated walls
         this.on(CREATE_WALLS, (wallEvent) => {
             const walls = wallEvent.walls;
@@ -204,10 +211,9 @@ export default class Game {
                 s.request(2147483642)
             },
             onNext(t) {
-                const type = t.data.eventType;
-                console.log("got: " + type)
-                var event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
-                //callbacks[event.eventType()](event.eventType());
+                const event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
+                console.log("got: " + event.eventType())
+                callbacks[event.eventType()](event);
             },
             onError(err) {
                 console.error(err);

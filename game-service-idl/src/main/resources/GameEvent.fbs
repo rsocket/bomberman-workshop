@@ -122,6 +122,7 @@ union EventType {
 
     PlaceWall: PlaceWallEvent,
     DeleteWall: DeleteWallEvent,
+    Game: Game,
 }
 
 table GameEvent {

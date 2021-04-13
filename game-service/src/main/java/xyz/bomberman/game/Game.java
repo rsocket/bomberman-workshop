@@ -51,47 +51,52 @@ public class Game {
     var game = new Game(gameWalls, gamePlayers);
 
     final FlatBufferBuilder builder = new FlatBufferBuilder();
-    var offset = xyz.bomberman.game.data.Game.createGame(
+    var offset = GameEvent.createGameEvent(
         builder,
-        xyz.bomberman.game.data.Game.createPlayersVector(
+        EventType.Game,
+        xyz.bomberman.game.data.Game.createGame(
             builder,
-            gamePlayers.stream()
-                .mapToInt(p -> {
-                  var idOffset = builder.createString(p.id);
-                  var directionOffset = builder.createString(p.direction);
-                  xyz.bomberman.game.data.Player.startPlayer(builder);
-                  xyz.bomberman.game.data.Player.addId(builder, idOffset);
-                  xyz.bomberman.game.data.Player.addHealth(builder, p.health);
-                  xyz.bomberman.game.data.Player.addAmountWalls(builder, p.amountWalls);
-                  xyz.bomberman.game.data.Player.addAmountBombs(builder, p.amountBombs);
-                  xyz.bomberman.game.data.Player.addDirection(builder, directionOffset);
-                  //TODO: X? Y?
-                  return xyz.bomberman.game.data.Player.endPlayer(builder);
-                })
-                .toArray()
-        ),
-        xyz.bomberman.game.data.Game.createItemsVector(
-            builder,
-            new int[]{} // TODO
-        ),
-        xyz.bomberman.game.data.Game.createWallsVector(
-            builder,
-            gameWalls.stream()
-                .mapToInt(w -> {
-                  var idOffset = builder.createString(w.wallId);
-                  xyz.bomberman.game.data.Wall.startWall(builder);
-                  xyz.bomberman.game.data.Wall.addId(builder, idOffset);
-                  var positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, w.x, w.y);
-                  xyz.bomberman.game.data.Wall.addPosition(builder, positionOffset);
-                  xyz.bomberman.game.data.Wall.addIsDestructible(builder, w.isDestructible);
-                  return xyz.bomberman.game.data.Wall.endWall(builder);
-                })
-                .toArray()
+            xyz.bomberman.game.data.Game.createPlayersVector(
+                builder,
+                gamePlayers.stream()
+                    .mapToInt(p -> {
+                      var idOffset = builder.createString(p.id);
+                      var directionOffset = builder.createString(p.direction);
+                      xyz.bomberman.game.data.Player.startPlayer(builder);
+                      xyz.bomberman.game.data.Player.addId(builder, idOffset);
+                      xyz.bomberman.game.data.Player.addHealth(builder, p.health);
+                      xyz.bomberman.game.data.Player.addAmountWalls(builder, p.amountWalls);
+                      xyz.bomberman.game.data.Player.addAmountBombs(builder, p.amountBombs);
+                      xyz.bomberman.game.data.Player.addDirection(builder, directionOffset);
+                      //TODO: X? Y?
+                      return xyz.bomberman.game.data.Player.endPlayer(builder);
+                    })
+                    .toArray()
+            ),
+            xyz.bomberman.game.data.Game.createItemsVector(
+                builder,
+                new int[]{} // TODO
+            ),
+            xyz.bomberman.game.data.Game.createWallsVector(
+                builder,
+                gameWalls.stream()
+                    .mapToInt(w -> {
+                      var idOffset = builder.createString(w.wallId);
+                      xyz.bomberman.game.data.Wall.startWall(builder);
+                      xyz.bomberman.game.data.Wall.addId(builder, idOffset);
+                      var positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, w.x, w.y);
+                      xyz.bomberman.game.data.Wall.addPosition(builder, positionOffset);
+                      xyz.bomberman.game.data.Wall.addIsDestructible(builder, w.isDestructible);
+                      return xyz.bomberman.game.data.Wall.endWall(builder);
+                    })
+                    .toArray()
+            )
         )
     );
     builder.finish(offset);
     var gameBuf = ByteBuffer.wrap(builder.sizedByteArray());
-    var flatGame = xyz.bomberman.game.data.Game.getRootAsGame(gameBuf);
+    var flatGame = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(gameBuf);
+
     players.forEach(p -> p.play(flatGame, game.outboundEvents.asFlux()).subscribe(game::handleEvent));
   }
 

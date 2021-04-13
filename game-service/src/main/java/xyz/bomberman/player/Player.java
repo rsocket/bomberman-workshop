@@ -10,5 +10,5 @@ public interface Player {
 
   String name();
 
-  Flux<GameEvent> play(Game game, Flux<GameEvent> otherPlayersEvents);
+  Flux<GameEvent> play(GameEvent game, Flux<GameEvent> otherPlayersEvents);
 }
