@@ -57,6 +57,7 @@ public class RoomsService {
       if (room != null) {
         roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
         room.start(player);
+        return;
       }
 
       throw new IllegalStateException("Room " + roomId + " does not exist");

@@ -121,20 +121,26 @@ export function Rooms() {
         }).subscribe()
     }
 
-    function startGame(roomId) {
+    async function startGame(roomId) {
         const rSocket = socket.current;
         rSocket.requestResponse({
             metadata: encodeCompositeMetadata([
                 [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.start`)],
             ]),
-        }).subscribe()
+        }).subscribe({
+            onComplete() {
+                // doesn't work?
+            }
+        })
+
+        console.log("starting the game")
+        switchUI();
     }
 
     const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;
     return (
         <div className={"rooms"}>
             <div>Welcome, {userName} ({userId})</div>
-            <button onClick={switchUI}>SWITCH UI</button><br/>
             {inAGame
                 ? <div/>
                 : <button onClick={createGame}>Create Game</button>

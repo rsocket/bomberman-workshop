@@ -1,15 +1,19 @@
 package xyz.bomberman.game;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+
+import com.google.flatbuffers.FlatBufferBuilder;
 import reactor.core.publisher.Sinks;
 import xyz.bomberman.controllers.dto.Event;
 import xyz.bomberman.game.data.EventType;
 import xyz.bomberman.game.data.GameEvent;
+import xyz.bomberman.room.data.RoomEvent;
 
 public class Game {
 
@@ -44,7 +48,49 @@ public class Game {
     var gamePlayers = generatePlayers(players);
     var game = new Game(gameWalls, gamePlayers);
 
-    //players.forEach(p -> p.play(null, game.outboundEvents.asFlux()).subscribe(game::handleEvent));
+    final FlatBufferBuilder builder = new FlatBufferBuilder();
+    var offset = xyz.bomberman.game.data.Game.createGame(
+        builder,
+        xyz.bomberman.game.data.Game.createPlayersVector(
+            builder,
+            gamePlayers.stream()
+                .mapToInt(p -> {
+                  var idOffset = builder.createString(p.id);
+                  var directionOffset = builder.createString(p.direction);
+                  xyz.bomberman.game.data.Player.startPlayer(builder);
+                  xyz.bomberman.game.data.Player.addId(builder, idOffset);
+                  xyz.bomberman.game.data.Player.addHealth(builder, p.health);
+                  xyz.bomberman.game.data.Player.addAmountWalls(builder, p.amountWalls);
+                  xyz.bomberman.game.data.Player.addAmountBombs(builder, p.amountBombs);
+                  xyz.bomberman.game.data.Player.addDirection(builder, directionOffset);
+                  //TODO: X? Y?
+                  return xyz.bomberman.game.data.Player.endPlayer(builder);
+                })
+                .toArray()
+        ),
+        xyz.bomberman.game.data.Game.createItemsVector(
+            builder,
+            new int[]{} // TODO
+        ),
+        xyz.bomberman.game.data.Game.createWallsVector(
+            builder,
+            gameWalls.stream()
+              .mapToInt(w -> {
+                var idOffset = builder.createString(w.wallId);
+                xyz.bomberman.game.data.Wall.startWall(builder);
+                xyz.bomberman.game.data.Wall.addId(builder, idOffset);
+                var positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, w.x, w.y);
+                xyz.bomberman.game.data.Wall.addPosition(builder, positionOffset);
+                xyz.bomberman.game.data.Wall.addIsDestructible(builder, w.isDestructible);
+                return xyz.bomberman.game.data.Wall.endWall(builder);
+              })
+              .toArray()
+        )
+    );
+    builder.finish(offset);
+    var gameBuf = ByteBuffer.wrap(builder.sizedByteArray());
+    var flatGame = xyz.bomberman.game.data.Game.getRootAsGame(gameBuf);
+    players.forEach(p -> p.play(flatGame, game.outboundEvents.asFlux()).subscribe(game::handleEvent));
   }
 
 
@@ -162,7 +208,8 @@ public class Game {
 //        break;
 //      }
       default:
-        throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
+        System.out.println("unknown event: " + gameEvent.eventType());
+        //throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
     }
   }
 
