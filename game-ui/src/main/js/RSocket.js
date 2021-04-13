@@ -1,5 +1,5 @@
 import RSocketWebSocketClient from "rsocket-websocket-client";
-import {IdentitySerializer, JsonSerializer, RSocketClient} from "rsocket-core";
+import {BufferEncoders, RSocketClient, MESSAGE_RSOCKET_COMPOSITE_METADATA, MESSAGE_RSOCKET_ROUTING, encodeCompositeMetadata, encodeRoute} from "rsocket-core";
 
 export async function connect(userId) {
     console.log("connecting")
@@ -8,21 +8,22 @@ export async function connect(userId) {
     const hostname = window.location.hostname;
     const wsClient = new RSocketWebSocketClient({
         url: `${isSecure ? 'wss' : 'ws'}://${hostname}${port}/rsocket`
-    });
+    }, BufferEncoders);
     const socketClient = new RSocketClient({
-        serializers: {
-            data: JsonSerializer,
-            metadata: IdentitySerializer
-        },
         setup: {
             keepAlive: 30000,
             lifetime: 90000,
-            dataMimeType: 'application/json',
-            metadataMimeType: 'message/x.rsocket.routing.v0',
+            dataMimeType: 'application/octet-stream',
+            metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
             payload: {
-                metadata: String.fromCharCode('game.players.login'.length) + 'game.players.login',
-                data: userId
+                metadata: encodeCompositeMetadata([
+                    [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.players.login')],
+                ]),
+                data: Buffer.from(userId)
             }
+        },
+        responders: {
+            requestChannel: flowable => flowable
         },
         transport: wsClient,
     });

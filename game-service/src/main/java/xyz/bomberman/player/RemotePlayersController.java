@@ -15,7 +15,6 @@ import xyz.bomberman.player.data.EventType;
 import xyz.bomberman.player.data.PlayerEvent;
 import xyz.bomberman.player.data.PlayerId;
 
-@Controller
 @MessageMapping("game.players")
 @AllArgsConstructor
 public class RemotePlayersController {
@@ -31,22 +30,26 @@ public class RemotePlayersController {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
 
           if (pe.getType() == CONNECTED) {
-            PlayerEvent.createPlayerEvent(
-                builder,
-                EventType.Connected,
-                Player.createPlayer(
+            PlayerEvent.finishPlayerEventBuffer(builder,
+                PlayerEvent.createPlayerEvent(
                     builder,
-                    builder.createString(pe.getPlayer().id()),
-                    builder.createString(pe.getPlayer().name())
+                    EventType.Connected,
+                    Player.createPlayer(
+                        builder,
+                        builder.createString(pe.getPlayer().id()),
+                        builder.createString(pe.getPlayer().name())
+                    )
                 )
             );
           } else {
-            PlayerEvent.createPlayerEvent(
-                builder,
-                EventType.Disconnected,
-                PlayerId.createPlayerId(
+            PlayerEvent.finishPlayerEventBuffer(builder,
+                PlayerEvent.createPlayerEvent(
                     builder,
-                    builder.createString(pe.getPlayer().id())
+                    EventType.Disconnected,
+                    PlayerId.createPlayerId(
+                        builder,
+                        builder.createString(pe.getPlayer().id())
+                    )
                 )
             );
           }

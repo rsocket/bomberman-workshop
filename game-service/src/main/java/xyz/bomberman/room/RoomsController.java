@@ -29,16 +29,27 @@ public class RoomsController {
 //    return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
 //  }
 
-  @MessageMapping("list")
+  @MessageMapping("")
   public Flux<ByteBuffer> list() {
     return roomsService.list()
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
-          var offset = RoomEvent
-              .createRoomEvent(builder, builder.createString(re.getRoom().id()),
-                  (byte) re.getType().ordinal());
-          builder.finish(0);
-          return ByteBuffer.wrap(builder.sizedByteArray());
+          RoomEvent.finishRoomEventBuffer(builder, RoomEvent
+              .createRoomEvent(
+                  builder,
+                  (byte) re.getType().ordinal(),
+                  builder.createString(re.getRoom().id()),
+                  RoomEvent.createPlayersVector(
+                      builder,
+                      re.getRoom()
+                        .players()
+                        .stream()
+                        .mapToInt(p -> builder.createString(p.id()))
+                        .toArray()
+                  )
+              )
+          );
+          return builder.dataBuffer();
         });
   }
 

@@ -5,12 +5,10 @@ import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import xyz.bomberman.game.data.Game;
 import xyz.bomberman.game.data.GameEvent;
 
-@Controller
 @MessageMapping
 @AllArgsConstructor
 public class RemotePlayerController {
@@ -19,10 +17,11 @@ public class RemotePlayerController {
 
   @MessageMapping("game.play")
   public Flux<ByteBuffer> play(
-      //@Header("bomberman/player.id") String playerId,
-      Player player, //
-      Flux<ByteBuffer> inboundEvents) {
-    // final Player player = playersService.find(playerId);
+      @Header("bomberman/player.id") String playerId,
+      Flux<ByteBuffer> inboundEvents
+  ) {
+
+    final Player player = playersService.find(playerId);
 
     return inboundEvents.switchOnFirst(
         (signal, dataBufferFlux) -> {

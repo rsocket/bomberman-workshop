@@ -23,7 +23,6 @@ flatbuffers {
 processResources {
     dependsOn configurations.flatbuf
     dependsOn yarn_install
-    dependsOn yarn_run_webpack
 
     configurations.flatbuf.files.each {
         from(zipTree(it).matching {
@@ -37,4 +36,10 @@ task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
     inputDir = file("$buildDir/resources/main")
     outputDir = file("$projectDir/src/main/js/flatbuffers")
     extraArgs = "--gen-mutable"
+}
+
+yarn_run_webpack.dependsOn(createFlatBuffers)
+
+classes {
+    dependsOn yarn_run_webpack
 }

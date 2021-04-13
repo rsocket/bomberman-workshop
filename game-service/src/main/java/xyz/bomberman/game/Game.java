@@ -41,8 +41,8 @@ public class Game {
 
   public static void create(Set<xyz.bomberman.player.Player> players) {
     var gameWalls = generateRandomWalls();
-//    var gamePlayers = generatePlayers(players);
-//    var game = new Game(gameWalls, gamePlayers);
+    var gamePlayers = generatePlayers(players);
+    var game = new Game(gameWalls, gamePlayers);
 
     //players.forEach(p -> p.play(null, game.outboundEvents.asFlux()).subscribe(game::handleEvent));
   }
@@ -221,13 +221,13 @@ public class Game {
     return false;
   }
 
-  private static List<Player> generatePlayers(List<String> users) {
+  private static List<Player> generatePlayers(Set<xyz.bomberman.player.Player> users) {
     var players = new ArrayList<Player>();
-    for (int i = 0, usersSize = users.size(); i < usersSize; i++) {
-      String user = users.get(i);
+    var i = 0;
+    for (var user : users) {
       var position = INITIAL_POSITIONS.get(i);
       var player = new Player(
-          user,
+          user.name(),
           position.x,
           position.y,
           Directions.ALL.get(i),
@@ -236,6 +236,7 @@ public class Game {
           HEALTH
       );
       players.add(player);
+      i++;
     }
     return players;
   }

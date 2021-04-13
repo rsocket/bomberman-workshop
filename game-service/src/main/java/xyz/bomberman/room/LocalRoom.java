@@ -1,5 +1,7 @@
 package xyz.bomberman.room;
 
+import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
+
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import reactor.core.publisher.Flux;
@@ -30,8 +32,8 @@ public class LocalRoom implements Room {
   }
 
   @Override
-  public Flux<Set<Player>> players() {
-    return playersSink.asFlux();
+  public Set<Player> players() {
+    return players;
   }
 
   @Override
@@ -41,8 +43,13 @@ public class LocalRoom implements Room {
     }
 
     if (playersSink.tryEmitComplete() == EmitResult.OK) {
+      playersSink.emitComplete(FAIL_FAST);
       Game.create(players);
     }
+  }
+
+  public void close() {
+    playersSink.emitError(new RuntimeException("Room was closed"), FAIL_FAST);
   }
 
   @Override
@@ -50,7 +57,7 @@ public class LocalRoom implements Room {
     return Mono.fromRunnable(() -> {
       if (players.size() < 4) {
         if (players.add(player)) {
-          playersSink.emitNext(players, EmitFailureHandler.FAIL_FAST);
+          playersSink.emitNext(players, FAIL_FAST);
         }
         throw new IllegalStateException("Player already joined");
       }
@@ -63,7 +70,7 @@ public class LocalRoom implements Room {
   public Mono<Void> leave(Player player) {
     return Mono.fromRunnable(() -> {
       if (players.remove(player)) {
-        playersSink.emitNext(players, EmitFailureHandler.FAIL_FAST);
+        playersSink.emitNext(players, FAIL_FAST);
       }
 
       throw new IllegalStateException("Player already left");

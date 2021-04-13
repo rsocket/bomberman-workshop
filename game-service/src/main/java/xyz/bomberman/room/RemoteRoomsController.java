@@ -6,13 +6,12 @@ import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
 import xyz.bomberman.player.PlayersService;
+import xyz.bomberman.room.data.RoomEvent;
 
-@Controller
 @AllArgsConstructor
 @MessageMapping("game.rooms")
 public class RemoteRoomsController {
@@ -26,20 +25,35 @@ public class RemoteRoomsController {
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
           xyz.bomberman.room.data.RoomEvent
-              .createRoomEvent(builder, builder.createString(re.getRoom().id()),
-                  (byte) re.getType().ordinal());
+              .finishRoomEventBuffer(builder, xyz.bomberman.room.data.RoomEvent
+                  .createRoomEvent(
+                      builder,
+                      (byte) re.getType().ordinal(),
+                      builder.createString(re.getRoom().id()),
+                      RoomEvent.createPlayersVector(
+                          builder,
+                          re.getRoom()
+                              .players()
+                              .stream()
+                              .mapToInt(p -> builder.createString(p.id()))
+                              .toArray()
+                      )
+                  )
+              );
           return builder.dataBuffer();
         });
   }
 
   @MessageMapping("{id}.join")
-  public Mono<Void> join(@DestinationVariable("id") String roomId, @Header("bomberman/player.id") String playerId) {
+  public Mono<Void> join(@DestinationVariable("id") String roomId,
+      @Header("bomberman/player.id") String playerId) {
     final Player player = playersService.find(playerId);
     return roomsService.join(roomId, player);
   }
 
   @MessageMapping("{id}.leave")
-  public Mono<Void> leave(@DestinationVariable("id") String roomId, @Header("bomberman/player.id") String playerId) {
+  public Mono<Void> leave(@DestinationVariable("id") String roomId,
+      @Header("bomberman/player.id") String playerId) {
     final Player player = playersService.find(playerId);
     return roomsService.leave(roomId, player);
   }

@@ -10,6 +10,7 @@ import xyz.bomberman.player.Player;
 public class RemoteRoom implements Room {
 
   final String id;
+  final Set<Player> players;
   final RemoteRoomClient remoteRoomClient;
 
   @Override
@@ -18,13 +19,18 @@ public class RemoteRoom implements Room {
   }
 
   @Override
-  public Flux<Set<Player>> players() {
-    return remoteRoomClient.players(id);
+  public Set<Player> players() {
+    return players;
   }
 
   @Override
   public void start(Player player) {
     throw new IllegalStateException("Remote player cannot start the game");
+  }
+
+  @Override
+  public void close() {
+    throw new IllegalStateException("Remote player cannot close the game");
   }
 
   @Override

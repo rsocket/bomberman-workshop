@@ -29,7 +29,8 @@ xyz.bomberman.room.data = xyz.bomberman.room.data || {};
  */
 xyz.bomberman.room.data.EventType = {
   Added: 0,
-  Removed: 1
+  Updated: 1,
+  Removed: 2
 };
 
 /**
@@ -37,7 +38,8 @@ xyz.bomberman.room.data.EventType = {
  */
 xyz.bomberman.room.data.EventTypeName = {
   '0': 'Added',
-  '1': 'Removed'
+  '1': 'Updated',
+  '2': 'Removed'
 };
 
 /**
@@ -86,19 +88,10 @@ xyz.bomberman.room.data.RoomEvent.getSizePrefixedRootAsRoomEvent = function(bb, 
 };
 
 /**
- * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array|null}
- */
-xyz.bomberman.room.data.RoomEvent.prototype.id = function(optionalEncoding) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
-};
-
-/**
  * @returns {xyz.bomberman.room.data.EventType}
  */
 xyz.bomberman.room.data.RoomEvent.prototype.type = function() {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb.__offset(this.bb_pos, 4);
   return offset ? /** @type {xyz.bomberman.room.data.EventType} */ (this.bb.readInt8(this.bb_pos + offset)) : xyz.bomberman.room.data.EventType.Added;
 };
 
@@ -107,7 +100,7 @@ xyz.bomberman.room.data.RoomEvent.prototype.type = function() {
  * @returns {boolean}
  */
 xyz.bomberman.room.data.RoomEvent.prototype.mutate_type = function(value) {
-  var offset = this.bb.__offset(this.bb_pos, 6);
+  var offset = this.bb.__offset(this.bb_pos, 4);
 
   if (offset === 0) {
     return false;
@@ -118,18 +111,37 @@ xyz.bomberman.room.data.RoomEvent.prototype.mutate_type = function(value) {
 };
 
 /**
- * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
  */
-xyz.bomberman.room.data.RoomEvent.startRoomEvent = function(builder) {
-  builder.startObject(2);
+xyz.bomberman.room.data.RoomEvent.prototype.id = function(optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 6);
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @param {number} index
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array}
+ */
+xyz.bomberman.room.data.RoomEvent.prototype.players = function(index, optionalEncoding) {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.__string(this.bb.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+};
+
+/**
+ * @returns {number}
+ */
+xyz.bomberman.room.data.RoomEvent.prototype.playersLength = function() {
+  var offset = this.bb.__offset(this.bb_pos, 8);
+  return offset ? this.bb.__vector_len(this.bb_pos + offset) : 0;
 };
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} idOffset
  */
-xyz.bomberman.room.data.RoomEvent.addId = function(builder, idOffset) {
-  builder.addFieldOffset(0, idOffset, 0);
+xyz.bomberman.room.data.RoomEvent.startRoomEvent = function(builder) {
+  builder.startObject(3);
 };
 
 /**
@@ -137,7 +149,44 @@ xyz.bomberman.room.data.RoomEvent.addId = function(builder, idOffset) {
  * @param {xyz.bomberman.room.data.EventType} type
  */
 xyz.bomberman.room.data.RoomEvent.addType = function(builder, type) {
-  builder.addFieldInt8(1, type, xyz.bomberman.room.data.EventType.Added);
+  builder.addFieldInt8(0, type, xyz.bomberman.room.data.EventType.Added);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} idOffset
+ */
+xyz.bomberman.room.data.RoomEvent.addId = function(builder, idOffset) {
+  builder.addFieldOffset(1, idOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {flatbuffers.Offset} playersOffset
+ */
+xyz.bomberman.room.data.RoomEvent.addPlayers = function(builder, playersOffset) {
+  builder.addFieldOffset(2, playersOffset, 0);
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {Array.<flatbuffers.Offset>} data
+ * @returns {flatbuffers.Offset}
+ */
+xyz.bomberman.room.data.RoomEvent.createPlayersVector = function(builder, data) {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param {flatbuffers.Builder} builder
+ * @param {number} numElems
+ */
+xyz.bomberman.room.data.RoomEvent.startPlayersVector = function(builder, numElems) {
+  builder.startVector(4, numElems, 4);
 };
 
 /**
@@ -167,14 +216,16 @@ xyz.bomberman.room.data.RoomEvent.finishSizePrefixedRoomEventBuffer = function(b
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} idOffset
  * @param {xyz.bomberman.room.data.EventType} type
+ * @param {flatbuffers.Offset} idOffset
+ * @param {flatbuffers.Offset} playersOffset
  * @returns {flatbuffers.Offset}
  */
-xyz.bomberman.room.data.RoomEvent.createRoomEvent = function(builder, idOffset, type) {
+xyz.bomberman.room.data.RoomEvent.createRoomEvent = function(builder, type, idOffset, playersOffset) {
   xyz.bomberman.room.data.RoomEvent.startRoomEvent(builder);
-  xyz.bomberman.room.data.RoomEvent.addId(builder, idOffset);
   xyz.bomberman.room.data.RoomEvent.addType(builder, type);
+  xyz.bomberman.room.data.RoomEvent.addId(builder, idOffset);
+  xyz.bomberman.room.data.RoomEvent.addPlayers(builder, playersOffset);
   return xyz.bomberman.room.data.RoomEvent.endRoomEvent(builder);
 }
 

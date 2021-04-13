@@ -9,9 +9,11 @@ public interface Room {
 
   String id();
 
+  Set<Player> players();
+
   void start(Player player);
 
-  Flux<Set<Player>> players();
+  void close();
 
   Mono<Void> join(Player player);
 

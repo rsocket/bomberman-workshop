@@ -10,6 +10,7 @@ public class RoomEvent {
 
   enum Type {
     ADDED,
+    UPDATED,
     REMOVED
   }
 }

@@ -3,6 +3,7 @@ package xyz.bomberman.room;
 import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 import static xyz.bomberman.room.RoomEvent.Type.ADDED;
 import static xyz.bomberman.room.RoomEvent.Type.REMOVED;
+import static xyz.bomberman.room.RoomEvent.Type.UPDATED;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -61,17 +62,24 @@ public class RoomsService {
     }
   }
 
+  public void update(Room room) {
+    if (allRooms.replace(room.id(), room) != null) {
+      roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST);
+    }
+  }
+
   public void remove(String roomId) {
     var room = allRooms.remove(roomId);
 
     if (room != null) {
+      room.close();
       roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
     }
   }
 
   public Flux<RoomEvent> list() {
     return Flux.fromIterable(allRooms.values())
-        .map(room -> RoomEvent.of(room, REMOVED))
+        .map(room -> RoomEvent.of(room, ADDED))
         .concatWith(roomUpdates.asFlux());
   }
 }

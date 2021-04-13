@@ -1,10 +1,13 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import '@babel/polyfill'
+import {MESSAGE_RSOCKET_ROUTING, encodeCompositeMetadata, encodeRoute} from "rsocket-core";
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {connect} from "./RSocket.js"
 import {adjectives, colors} from "unique-names-generator";
+import {xyz} from './flatbuffers/RoomEvent_generated'
+import {flatbuffers} from "flatbuffers";
 
 const {uniqueNamesGenerator, animals} = require('unique-names-generator');
 
@@ -25,37 +28,36 @@ export function Rooms() {
         const [_, rSocket] = await connect(userName)
         socket.current = rSocket;
         rSocket.requestStream({
-            metadata: meta('list'),
-            data: {id: userName}
+            metadata: encodeCompositeMetadata([
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms')],
+            ]),
         }).subscribe({
             onSubscribe(s) {
                 s.request(2147483642)
             },
-            onNext(t) {
-                const room = t.data;
-                console.log(t);
-                // check if the game has started and you're in the game
-                if (room.started && room.users.includes(userName)) {
-                    window.location.href = `/game?id=${room.id}&username=${userName}`;
-                }
+            onNext(roomEventBuffer) {
+                const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(flatbuffers.ByteBuffer.allocate(roomEventBuffer));
+                const eventType = event.type();
+                const roomId = event.type();
+                const playersIds = new Array(event.playersLength()).map((_, i) => event.players(i))
+                console.log(event);
                 // update all displayed rooms
                 setRooms(rooms => {
                     console.log(rooms);
-                    let replaced = false;
-                    const out = []
-                    for (const existingRoom of rooms) {
-                        if (existingRoom.id === room.id) {
-                            out.push(room);
-                            replaced = true;
-                        } else {
-                            out.push(existingRoom);
-                        }
+                    if (eventType === xyz.bomberman.room.data.EventType.Added) {
+                        return [{
+                            id: roomId,
+                            users: playersIds
+                        }, ...rooms]
+                    } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
+                        return [{
+                            id: roomId,
+                            users: playersIds
+                        }, ...rooms.filter(room => room.id !== roomId)]
                     }
-                    if (!replaced) {
-                        out.push(room);
-                    }
+
                     // remove empty rooms
-                    return out.filter(room => room.users.length > 0);
+                    return rooms.filter(room => room.id !== roomId);
                 });
             },
             onError(err) {
@@ -79,8 +81,10 @@ export function Rooms() {
             length: 2,
         });
         rSocket.requestResponse({
-            metadata: meta('create'),
-            data: {userId: userName, roomId: roomId}
+            metadata: encodeCompositeMetadata([
+                [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms.create')],
+            ]),
+            data: Buffer.from(roomId)
         }).subscribe()
     }
 
