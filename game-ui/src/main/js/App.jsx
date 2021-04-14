@@ -29,8 +29,8 @@ export class AssetLoader {
         return new Promise((resolve, reject) => {
             const image = new Image();
             image.src = url;
-            image.addEventListener('load', function() {
-                return resolve({ name, image: this });
+            image.addEventListener('load', function () {
+                return resolve({name, image: this});
             });
         });
     }
@@ -40,7 +40,7 @@ export class AssetLoader {
             assetsToLoad.map(asset => this.loadAsset(asset.name, asset.url))
         ).then(assets =>
             assets.reduceRight(
-                (acc, elem) => ({ ...acc, [elem.name]: elem.image }),
+                (acc, elem) => ({...acc, [elem.name]: elem.image}),
                 {}
             )
         );
@@ -49,16 +49,16 @@ export class AssetLoader {
 
 new AssetLoader()
     .loadAssets([
-        { name: BOMBERMAN_LOCAL, url: '../images/bomberman.png' },
-        { name: WALL_BROWN, url: '../images/wall.png' },
-        { name: ITEM_EXTRA_LIFE, url: '../images/spoilLife.png' },
-        { name: ITEM_RUN_FASTER, url: '../images/spoilRun.png' },
-        { name: ITEM_EXTRA_BOMB, url: '../images/spoilBomb.png' },
-        { name: BOMB, url: '../images/bomb.png' },
-        { name: WALL_GREY, url: '../images/grid_option2.png' },
-        { name: FIRE, url: '../images/fire.png' },
-        { name: BOMBERMAN_ENEMY, url: '../images/enemy_bomberman.png'},
-        { name: BOMBERMAN_BURNED, url: '../images/burned_bomberman.png'}
+        {name: BOMBERMAN_LOCAL, url: '../images/bomberman.png'},
+        {name: WALL_BROWN, url: '../images/wall.png'},
+        {name: ITEM_EXTRA_LIFE, url: '../images/spoilLife.png'},
+        {name: ITEM_RUN_FASTER, url: '../images/spoilRun.png'},
+        {name: ITEM_EXTRA_BOMB, url: '../images/spoilBomb.png'},
+        {name: BOMB, url: '../images/bomb.png'},
+        {name: WALL_GREY, url: '../images/grid_option2.png'},
+        {name: FIRE, url: '../images/fire.png'},
+        {name: BOMBERMAN_ENEMY, url: '../images/enemy_bomberman.png'},
+        {name: BOMBERMAN_BURNED, url: '../images/burned_bomberman.png'}
     ])
     .then(assets => {
         ReactDOM.render(
@@ -69,10 +69,10 @@ new AssetLoader()
         );
         window.assets = assets;
 
-        document.querySelector("#you_suck_button").addEventListener('click', function (event){
+        document.querySelector("#you_suck_button").addEventListener('click', function (event) {
             event.preventDefault();
             const YOU_SUCK = "you_suck";
-            var game = window.game;
+            const game = window.game;
             if (game != null) {
                 game.broadcastReaction(YOU_SUCK);
                 game.drawReaction({id: game.id, reaction: YOU_SUCK})
@@ -82,7 +82,7 @@ new AssetLoader()
         document.querySelector('#love_button').addEventListener('click', function (event) {
             event.preventDefault();
             const LOVE = 'love';
-            var game = window.game;
+            const game = window.game;
             if (game != null) {
                 game.broadcastReaction(LOVE);
                 game.drawReaction({id: game.id, reaction: LOVE})
@@ -92,18 +92,17 @@ new AssetLoader()
         document.querySelector('#lol_button').addEventListener('click', function (event) {
             event.preventDefault();
             const LOL = 'lol';
-            var game = window.game;
+            const game = window.game;
             if (game != null) {
                 game.broadcastReaction(LOL);
                 game.drawReaction({id: game.id, reaction: LOL})
             }
         });
 
-    }).catch(err => {
+    })
+    .catch(err => {
         console.log(err);
-        // window.open(`http://stackoverflow.com/search?q=[js]+${err}`);
-        //window.location.href = "http://stackoverflow.com/search?q=[js]+" + err;
-});
+    });
 
 
 

@@ -232,17 +232,10 @@ export default class Game {
     }
 
     start(flowable) {
-        return this.initRsocket(flowable);
-    }
-
-
-    on(type, callback) {
-        this.callbacks[type] = callback;
-    }
-
-    initRsocket(flowable) {
         const callbacks = this.callbacks;
         let firstEvent = true;
+
+        const self = this;
         flowable.subscribe({
             onSubscribe(s) {
                 s.request(2147483642)
@@ -265,6 +258,7 @@ export default class Game {
                 console.log("complete?")
             }
         })
+
         return new Flowable(subscriber => {
             console.log("subscribing")
             subscriber.onSubscribe({
@@ -296,7 +290,9 @@ export default class Game {
     }
 
 
-
+    on(type, callback) {
+        this.callbacks[type] = callback;
+    }
 
 
 //###################################################//

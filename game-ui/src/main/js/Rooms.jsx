@@ -23,7 +23,7 @@ export function Rooms() {
     const socket = useRef(undefined);
 
     useEffect(async () => {
-        const [_, rSocket] = await connect(userName, {
+        const [, rSocket] = await connect(userName, {
             requestChannel(flowable) {
                 return launchGame(flowable);
             }
