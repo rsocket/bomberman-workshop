@@ -1,10 +1,10 @@
 package xyz.bomberman.room;
 
-import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
 import static xyz.bomberman.player.PlayerEvent.Type.DISCONNECTED;
 import static xyz.bomberman.room.RoomEvent.Type.ADDED;
 import static xyz.bomberman.room.RoomEvent.Type.REMOVED;
 import static xyz.bomberman.room.RoomEvent.Type.UPDATED;
+import static xyz.bomberman.utils.SinksSupport.RETRY_NON_SERIALIZED;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -18,9 +18,8 @@ import xyz.bomberman.player.PlayersService;
 @Service
 public class RoomsService {
 
-  private final ConcurrentMap<String, Room> allRooms = new ConcurrentHashMap<>();
-  private final Sinks.Many<RoomEvent> roomUpdates = Sinks.many().multicast()
-      .onBackpressureBuffer(256, false);
+  final ConcurrentMap<String, Room> allRooms = new ConcurrentHashMap<>();
+  final Sinks.Many<RoomEvent> roomUpdates = Sinks.many().multicast().directBestEffort();
 
   public RoomsService(PlayersService playersService) {
     playersService.players().subscribe(pe -> {
@@ -36,7 +35,8 @@ public class RoomsService {
 
       if (room != null) {
         return room.join(player)
-            .doOnSuccess((__) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST));
+            .doOnSuccess(
+                (__) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED));
       }
 
       return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
@@ -49,7 +49,8 @@ public class RoomsService {
 
       if (room != null) {
         return room.leave(player)
-            .doOnSuccess((__) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST));
+            .doOnSuccess((__) -> roomUpdates
+                .emitNext(RoomEvent.of(allRooms.get(roomId), UPDATED), RETRY_NON_SERIALIZED));
       }
 
       return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
@@ -61,7 +62,7 @@ public class RoomsService {
 
     if (room != null) {
       room.start(player);
-      roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
+      roomUpdates.emitNext(RoomEvent.of(room, REMOVED), RETRY_NON_SERIALIZED);
       return;
     }
 
@@ -70,13 +71,13 @@ public class RoomsService {
 
   public void add(Room room) {
     if (allRooms.put(room.id(), room) == null) {
-      roomUpdates.emitNext(RoomEvent.of(room, ADDED), FAIL_FAST);
+      roomUpdates.emitNext(RoomEvent.of(room, ADDED), RETRY_NON_SERIALIZED);
     }
   }
 
   public void update(Room room) {
     if (allRooms.replace(room.id(), room) != null) {
-      roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST);
+      roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED);
     }
   }
 
@@ -84,7 +85,7 @@ public class RoomsService {
     var room = allRooms.remove(roomId);
 
     if (room != null) {
-      roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
+      roomUpdates.emitNext(RoomEvent.of(room, REMOVED), RETRY_NON_SERIALIZED);
     }
   }
 
@@ -92,10 +93,11 @@ public class RoomsService {
     allRooms.values().forEach(room -> {
       if (room.owner().id().equals(player.id())) {
         allRooms.remove(room.id());
-        roomUpdates.emitNext(RoomEvent.of(room, REMOVED), FAIL_FAST);
+        roomUpdates.emitNext(RoomEvent.of(room, REMOVED), RETRY_NON_SERIALIZED);
       } else if (room.players().stream().anyMatch(p -> p.id().equals(player.id()))) {
         room.leave(player)
-            .doOnSuccess(__ -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), FAIL_FAST))
+            .doOnSuccess(
+                __ -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED))
             .subscribe();
       }
     });
@@ -104,6 +106,7 @@ public class RoomsService {
   public Flux<RoomEvent> list() {
     return Flux.fromIterable(allRooms.values())
         .map(room -> RoomEvent.of(room, ADDED))
-        .concatWith(roomUpdates.asFlux());
+        .concatWith(roomUpdates.asFlux())
+        .log("rooms");
   }
 }

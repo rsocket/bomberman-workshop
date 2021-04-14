@@ -3,15 +3,12 @@ package xyz.bomberman.player;
 import static xyz.bomberman.player.PlayerEvent.Type.CONNECTED;
 
 import com.google.flatbuffers.FlatBufferBuilder;
-import com.google.flatbuffers.Utf8;
-import java.awt.image.DataBuffer;
 import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
-import xyz.bomberman.player.data.Player;
 import xyz.bomberman.player.data.EventType;
+import xyz.bomberman.player.data.Player;
 import xyz.bomberman.player.data.PlayerEvent;
 import xyz.bomberman.player.data.PlayerId;
 
@@ -21,7 +18,7 @@ public class RemotePlayersController {
 
   final PlayersService playersService;
 
-  @MessageMapping
+  @MessageMapping("")
   public Flux<ByteBuffer> players() {
     return playersService
         .players()

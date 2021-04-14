@@ -51,15 +51,21 @@ public class RemoteRoomsListener extends BaseSubscriber<DataBuffer> {
       }
       final RemoteRoom remoteRoom = new RemoteRoom(roomId, owner, players, remoteRoomClient);
 
+      remoteRooms.put(roomId, remoteRoom);
+      roomsService.add(remoteRoom);
+    } else if (roomEvent.type() == EventType.Updated) {
+      final String roomId = roomEvent.id();
+      final Player owner = playersService.find(roomEvent.owner().id());
+      final Set<Player> players = new HashSet<>();
+      for (int i = 0; i < roomEvent.playersLength(); i++) {
+        final Player player = playersService.find(roomEvent.players(i).id());
+        players.add(player);
+      }
+      final RemoteRoom remoteRoom = new RemoteRoom(roomId, owner, players, remoteRoomClient);
+
       remoteRooms.replace(roomId, remoteRoom);
       roomsService.update(remoteRoom);
-    }
-    else if (roomEvent.type() == EventType.Updated) {
-      final String roomId = roomEvent.id();
-
-      roomsService.remove(roomId);
-    }
-    else if (roomEvent.type() == EventType.Removed) {
+    } else if (roomEvent.type() == EventType.Removed) {
       final String roomId = roomEvent.id();
 
       remoteRooms.remove(roomId);

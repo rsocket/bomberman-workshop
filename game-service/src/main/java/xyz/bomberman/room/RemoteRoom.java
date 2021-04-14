@@ -35,11 +35,13 @@ public class RemoteRoom implements Room {
 
   @Override
   public Mono<Void> join(Player player) {
-    return remoteRoomClient.join(id, player);
+    return remoteRoomClient.join(id, player)
+        .doOnSuccess(__ -> players.add(player));
   }
 
   @Override
   public Mono<Void> leave(Player player) {
-    return remoteRoomClient.leave(id, player);
+    return remoteRoomClient.leave(id, player)
+        .doOnSuccess(__ -> players.remove(player));
   }
 }

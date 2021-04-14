@@ -1,25 +1,12 @@
+include "ServiceInfo.fbs";
+
 namespace xyz.bomberman.discovery.data;
 
-enum TransportType:byte { Tcp = 0, WebSocket = 1 }
-
-table ServiceConnectedEvent {
-  id: string;
-  host: string;
-  port: int32;
-  transport: TransportType;
-}
-
-table ServiceDisconnectedEvent {
-  id: string;
-}
-
-union AnyServiceEvent {
-  Connected: ServiceConnectedEvent,
-  Disconnected: ServiceDisconnectedEvent
-}
+enum EventType: byte { Connected = 0, Disconnected = 1 }
 
 table ServiceEvent {
-  event: AnyServiceEvent;
+  type: EventType;
+  serviceInfo: ServiceInfo;
 }
 
 root_type ServiceEvent;

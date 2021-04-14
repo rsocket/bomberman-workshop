@@ -1,15 +1,48 @@
+import io.netifi.flatbuffers.plugin.tasks.FlatBuffers
+
 plugins {
-    id "io.spring.dependency-management"
     id "java"
+    id "io.netifi.flatbuffers"
+}
+
+configurations {
+    flatbuf
 }
 
 dependencies {
-    implementation platform("io.rsocket:rsocket-bom:1.1.1-SNAPSHOT")
+    flatbuf(project(":discovery-service-idl"))
+
+    implementation platform("io.rsocket:rsocket-bom:1.1.0")
 
     implementation("io.rsocket:rsocket-core")
     implementation("io.rsocket:rsocket-transport-netty")
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.4")
+    compileOnly("org.projectlombok:lombok:1.18.20")
+    annotationProcessor("org.projectlombok:lombok:1.18.20")
 
     testImplementation("junit:junit:4.12")
+}
+
+flatbuffers {
+    flatBuffersVersion = '1.12.0'
+}
+
+processResources {
+    dependsOn configurations.flatbuf
+    configurations.flatbuf.files.each {
+        from(zipTree(it).matching {
+            include "*.fbs"
+        })
+    }
+}
+
+task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
+    language = 'java'
+    inputDir = file("$buildDir/resources/main")
+    outputDir = file("$buildDir/generated/sources/flatbuffers/java/main")
+    extraArgs = "--gen-mutable"
+}
+
+compileJava {
+    dependsOn createFlatBuffers
 }

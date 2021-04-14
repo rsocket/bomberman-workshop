@@ -55,10 +55,6 @@ task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
     extraArgs = "--gen-mutable"
 }
 
-classes {
+compileJava {
     dependsOn createFlatBuffers
-}
-
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn createFlatBuffers
 }

@@ -13,29 +13,30 @@ public class ServiceRegistry {
   final ConcurrentMap<String, ServiceInfo> servicesInfo = new ConcurrentHashMap<>();
   final Sinks.Many<Event> broadcaster = Sinks.many().multicast().directBestEffort();
 
-  public Flux<Event> listen() {
+  Flux<Event> listen() {
     return broadcaster.asFlux();
   }
 
-  public Flux<ServiceInfo> list() {
+  Flux<ServiceInfo> list() {
     return Flux.fromIterable(servicesInfo.values());
   }
 
-  public ServiceInfo find(String id) {
+  ServiceInfo find(String id) {
     return servicesInfo.get(id);
   }
 
-  public void register(ServiceInfo info) {
-    servicesInfo.put(info.id, info);
-    broadcaster.tryEmitNext(info.asEvent(EventType.ADDED));
-    info.requester.onClose()
-        .onErrorResume(__ -> Mono.empty())
-        .thenReturn(info)
-        .subscribe(this::unregister);
+  void register(ServiceInfo info) {
+    if (servicesInfo.put(info.getId(), info) == null) {
+      broadcaster.tryEmitNext(info.asConnectedEvent());
+      return;
+    }
+
+    throw new IllegalStateException("Service has already been registered");
   }
 
-  public void unregister(ServiceInfo info) {
-    servicesInfo.remove(info.id);
-    broadcaster.tryEmitNext(info.asEvent(EventType.REMOVED));
+  void unregister(ServiceInfo info) {
+    if (servicesInfo.remove(info.getId()) != null) {
+      broadcaster.tryEmitNext(info.asDisconnectedEvent());
+    }
   }
 }

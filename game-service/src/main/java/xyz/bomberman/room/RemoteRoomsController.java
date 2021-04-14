@@ -22,6 +22,7 @@ public class RemoteRoomsController {
   @MessageMapping("")
   public Flux<ByteBuffer> list() {
     return roomsService.list()
+        .filter(roomEvent -> roomEvent.getRoom().getClass().equals(LocalRoom.class))
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
           xyz.bomberman.room.data.RoomEvent

@@ -1,6 +1,6 @@
 package xyz.bomberman.game;
 
-import static reactor.core.publisher.Sinks.EmitFailureHandler.FAIL_FAST;
+import static xyz.bomberman.utils.SinksSupport.RETRY_NON_SERIALIZED;
 
 import com.google.flatbuffers.FlatBufferBuilder;
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class Game {
     var gamePlayers = generatePlayers(players);
     var playersOutboundsMap = players.stream()
         .collect(Collectors.toMap(xyz.bomberman.player.Player::id,
-            __ -> Sinks.many().unicast().<GameEvent>onBackpressureError()));
+            __ -> Sinks.many().multicast().<GameEvent>directBestEffort()));
     var game = new Game(gameWalls, gamePlayers, playersOutboundsMap);
 
     final FlatBufferBuilder builder = new FlatBufferBuilder();
@@ -123,7 +123,7 @@ public class Game {
   void broadcast(String senderPlayerId, GameEvent gameEvent) {
     for (var entry : playersOutbound.entrySet()) {
       if (entry.getKey().equals(senderPlayerId)) {
-        entry.getValue().emitNext(gameEvent, FAIL_FAST);
+        entry.getValue().emitNext(gameEvent, RETRY_NON_SERIALIZED);
       }
     }
   }

@@ -1,16 +1,10 @@
 package xyz.bomberman;
 
-import java.util.UUID;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.messaging.rsocket.RSocketStrategies;
-import org.springframework.messaging.rsocket.annotation.support.RSocketMessageHandler;
 //import xyz.bomberman.controllers.EventController;
-import xyz.bomberman.room.RoomsController;
 import xyz.bomberman.metrics.Metrics;
 import xyz.bomberman.metrics.MetricsConnectionInterceptor;
 import xyz.bomberman.metrics.MetricsResponderInterceptor;
@@ -25,10 +19,10 @@ import xyz.bomberman.metrics.MetricsResponderInterceptor;
 //
 
 @SpringBootApplication
-public class Application {
+public class GameApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(Application.class, args);
+    SpringApplication.run(GameApplication.class, args);
   }
 
 //  @Bean
@@ -41,12 +35,12 @@ public class Application {
 //    };
 //  }
 
-  @Bean
-  RSocketServerCustomizer rSocketServerCustomizer() {
-    return (server) -> server.interceptors(registry -> { //
-      registry.forConnection(new MetricsConnectionInterceptor(Metrics.REGISTRY));
-      registry.forResponder(new MetricsResponderInterceptor(Metrics.REGISTRY));
-    });
-  }
+//  @Bean
+//  RSocketServerCustomizer rSocketServerCustomizer() {
+//    return (server) -> server.interceptors(registry -> { //
+//      registry.forConnection(new MetricsConnectionInterceptor(Metrics.REGISTRY));
+//      registry.forResponder(new MetricsResponderInterceptor(Metrics.REGISTRY));
+//    });
+//  }
 }
 
