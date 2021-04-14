@@ -243,6 +243,8 @@ export default class Game {
     }
 
     start(flowable) {
+        this.toggleUI();
+
         const callbacks = this.callbacks;
         let firstEvent = true;
 
@@ -300,6 +302,12 @@ export default class Game {
         })
     }
 
+    toggleUI() {
+        window.game = this;
+        document.querySelector("#lname").setAttribute("value", this.id);
+        document.getElementById("gamefield").className = ""
+        document.getElementById("root").className = "hidden"
+    }
 
     on(type, callback) {
         this.callbacks[type] = callback;
