@@ -122,6 +122,13 @@ public class Game {
   public void handleEvent(GameEvent gameEvent, String playerId) {
 
     switch (gameEvent.eventType()) {
+      case EventType.CreateItem: {
+//        var data = (Event.ReactionEvent) event;
+        broadcast(playerId, gameEvent);
+//        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
+//        System.out.println("Reaction: " + event.reaction());
+        break;
+      }
       case EventType.Reaction: {
 //        var data = (Event.ReactionEvent) event;
         broadcast(playerId, gameEvent);
@@ -221,6 +228,11 @@ public class Game {
 //        });
 //        break;
 //      }
+
+        break;
+      }
+      case EventType.UpdateInventory: {
+        broadcast(playerId, gameEvent);
 
         break;
       }

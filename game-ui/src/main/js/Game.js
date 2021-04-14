@@ -387,7 +387,19 @@ export default class Game {
     }
 
     broadcastItem(item) {
-        this.emit(CREATE_ITEM, item);
+        // {position:position, type: item_type}
+        //this.emit(CREATE_ITEM, item);
+        this.emit(xyz.bomberman.game.data.EventType.CreateItem,
+            (builder) => {
+                const positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y);
+                return xyz.bomberman.game.data.CreateItemEvent.createCreateItemEvent(
+                    builder,
+                    positionOffset,
+                    builder.createString(item.type),
+                );
+            }
+        )
+
     }
 
     broadcastDestroyedWall(wall) {
@@ -403,18 +415,27 @@ export default class Game {
 
     broadcastDeletedPlayer(player) {
         this.emit(xyz.bomberman.game.data.EventType.DeletePlayer,
-            (builder) => {
-                return xyz.bomberman.game.data.DeletePlayerEvent.createDeletePlayerEvent(
+            (builder) =>
+                xyz.bomberman.game.data.DeletePlayerEvent.createDeletePlayerEvent(
                     builder,
                     builder.createString(player.id),
-                );
-            }
+                )
         )
-        this.emit(DELETE_PLAYER, player);
+        //this.emit(DELETE_PLAYER, player);
     }
 
     broadcastInventory(state) {
-        this.emit(UPDATE_INVENTORY ,state);
+        // {id: player.id, amountWalls: player.amountWalls, amountBombs: player.amountBombs, health: player.health};
+        this.emit(xyz.bomberman.game.data.EventType.UpdateInventory,
+            (builder) =>
+                xyz.bomberman.game.data.UpdateInventoryEvent.createUpdateInventoryEvent(
+                    builder,
+                    builder.createString(state.id),
+                    state.amountWalls,
+                    state.amountBombs,
+                    state.health,
+                )
+        )
     }
 
 
