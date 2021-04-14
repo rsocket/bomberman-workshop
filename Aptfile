@@ -1,1 +1,4 @@
 flatbuffers-compiler
+
+:repo:deb http://archive.ubuntu.com/ubuntu/ groovy main
+
