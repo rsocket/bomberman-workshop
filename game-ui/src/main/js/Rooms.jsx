@@ -173,7 +173,7 @@ export function Rooms() {
                                     {ownedRoomId === room.id
                                         ? <button onClick={() => leaveGame(room.id)}>Close</button>
                                         : <button onClick={() => leaveGame(room.id)}>Leave</button>}
-                                    {ownedRoomId === room.id
+                                    {ownedRoomId === room.id && room.players.length > 1
                                         ? <button onClick={() => startGame(room.id)}>Start</button>
                                         : <div/>}
                                 </div>
