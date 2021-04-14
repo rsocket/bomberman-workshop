@@ -1,14 +1,12 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import '@babel/polyfill'
-import {MESSAGE_RSOCKET_ROUTING, encodeCompositeMetadata, encodeRoute} from "rsocket-core";
+import {encodeCompositeMetadata, encodeRoute, MESSAGE_RSOCKET_ROUTING} from "rsocket-core";
 import React, {useEffect, useRef, useState} from 'react';
-import ReactDOM from 'react-dom';
 import {connect} from "./RSocket.js"
 import {adjectives, colors} from "unique-names-generator";
 import {xyz} from './flatbuffers/RoomEvent_generated'
 import {flatbuffers} from "flatbuffers";
-import {Single} from "rsocket-flowable/build";
 import Game from "./Game";
 
 const {uniqueNamesGenerator, animals} = require('unique-names-generator');
@@ -22,7 +20,7 @@ export function Rooms() {
     const [rooms, setRooms] = useState([]);
     const [userId, setUserId] = useState(undefined);
     const [ownedRoomId, setOwnedRoomId] = useState(undefined);
-    const socket = useRef(null);
+    const socket = useRef(undefined);
 
     useEffect(async () => {
         const [_, rSocket] = await connect(userName, {
@@ -50,43 +48,17 @@ export function Rooms() {
                     onSubscribe(s) {
                         s.request(2147483642)
                     },
-                    onNext(roomEventBuffer) {
-                        const dataBuf = flatbuffers.ByteBuffer.allocate(roomEventBuffer.data);
-                        const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
-                        const eventType = event.type();
-                        const roomId = event.id();
-                        const players = [...new Array(event.playersLength()).keys()]
-                            .map(i => {
-                                const player = event.players(i);
-                                return {
-                                    id: player.id(),
-                                    name: player.name(),
-                                };
-                            })
-                        let playerOwner = event.owner();
-                        const owner = {
-                            id: playerOwner.id(),
-                            name: playerOwner.name(),
-                        };
+                    onNext(eventBuf) {
+                        const {eventType, room} = extractRoom(eventBuf);
                         // update all displayed rooms
                         setRooms(rooms => {
-                            console.log(rooms);
                             if (eventType === xyz.bomberman.room.data.EventType.Added) {
-                                return [{
-                                    id: roomId,
-                                    owner: owner,
-                                    players: players
-                                }, ...rooms]
-                            } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
-                                return [{
-                                    id: roomId,
-                                    owner: owner,
-                                    players: players
-                                }, ...rooms.filter(room => room.id !== roomId)]
+                                return [room, ...rooms]
+                            } else if (eventType === xyz.bomberman.room.data.EventType.Updated) {
+                                return [room, ...rooms.filter(r => r.id !== room.id)]
                             }
-
                             // remove empty rooms
-                            return rooms.filter(room => room.id !== roomId);
+                            return rooms.filter(r => r.id !== room.id);
                         });
                     },
                     onError(err) {
@@ -107,6 +79,7 @@ export function Rooms() {
         document.querySelector("#lname").setAttribute("value", userName);
         document.getElementById("gamefield").className = ""
         document.getElementById("root").className = "hidden"
+
         return game.start(flowable)
     }
 
@@ -185,10 +158,35 @@ export function Rooms() {
                         <hr style={{width: "100%"}}/>
                     </div>
                 )}
-
             </div>
         </div>
     );
+}
+
+function extractRoom(roomEventBuffer) {
+    const dataBuf = flatbuffers.ByteBuffer.allocate(roomEventBuffer.data);
+    const event = xyz.bomberman.room.data.RoomEvent.getRootAsRoomEvent(dataBuf);
+    const eventType = event.type();
+    const roomId = event.id();
+    const players = [...new Array(event.playersLength()).keys()]
+        .map(i => {
+            const player = event.players(i);
+            return {
+                id: player.id(),
+                name: player.name(),
+            };
+        })
+    let playerOwner = event.owner();
+    const owner = {
+        id: playerOwner.id(),
+        name: playerOwner.name(),
+    };
+    const room = {
+        id: roomId,
+        owner: owner,
+        players: players
+    };
+    return {eventType, room};
 }
 
 
