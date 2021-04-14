@@ -2,18 +2,15 @@
 
 import Bomb from "./Bomb.js";
 import Player from './Player.js';
-import Item from './Item.js';
 import Wall from './Wall.js';
 import {
     BACKGROUNDMUSIC,
     BOMBMUSIC,
-    CREATE_ITEM,
     DIEDMUSIC,
     ITEM_EXTRA_BOMB,
     ITEM_EXTRA_LIFE,
     ITEM_RUN_FASTER,
     LOSERMUSIC,
-    PLACE_WALL,
     SETBOMBMUSIC,
     SPOILMUSIC,
     WINNERMUSIC,
@@ -21,8 +18,26 @@ import {
 import {Flowable} from "rsocket-flowable";
 import {flatbuffers} from "flatbuffers";
 
+import {xyz as gameXyz} from "./flatbuffers/Game_generated";
 import {xyz} from "./flatbuffers/GameEvent_generated";
 import {encodeCompositeMetadata, encodeRoute, MESSAGE_RSOCKET_ROUTING} from "rsocket-core";
+
+const EventType = xyz.bomberman.game.data.EventType;
+
+const CreateItemEvent = xyz.bomberman.game.data.CreateItemEvent;
+const PlaceBombEvent = xyz.bomberman.game.data.PlaceBombEvent;
+
+const ReactionEvent = xyz.bomberman.game.data.ReactionEvent;
+const HurtPlayerEvent = xyz.bomberman.game.data.HurtPlayerEvent;
+const ChangeDirectionEvent = xyz.bomberman.game.data.ChangeDirectionEvent;
+const MovePlayerEvent = xyz.bomberman.game.data.MovePlayerEvent;
+const GrabItemEvent = xyz.bomberman.game.data.GrabItemEvent;
+const PlaceWallEvent = xyz.bomberman.game.data.PlaceWallEvent;
+const UpdateInventoryEvent = xyz.bomberman.game.data.UpdateInventoryEvent;
+const DeletePlayerEvent = xyz.bomberman.game.data.DeletePlayerEvent;
+const GameEvent = xyz.bomberman.game.data.GameEvent;
+const Position = xyz.bomberman.game.data.Position;
+const Item = xyz.bomberman.game.data.Item;
 
 export default class Game {
 
@@ -107,22 +122,22 @@ export default class Game {
                 }
             });
 
-        this.on(xyz.bomberman.game.data.EventType.Reaction, (data) => {
-                const reactionEvent = data.event(new xyz.bomberman.game.data.ReactionEvent())
+        this.on(EventType.Reaction, (data) => {
+                const reactionEvent = data.event(new ReactionEvent())
                 this.drawReaction({id: reactionEvent.id(), reaction: reactionEvent.reaction()});
             },
         );
 
-        this.on(xyz.bomberman.game.data.EventType.HurtPlayer, (data) => {
-            const hurtPlayerEvent = data.event(new xyz.bomberman.game.data.HurtPlayerEvent())
+        this.on(EventType.HurtPlayer, (data) => {
+            const hurtPlayerEvent = data.event(new HurtPlayerEvent())
             this.hurtPlayer({
                 id: hurtPlayerEvent.id()
             });
         });
 
         // receive direction changes
-        this.on(xyz.bomberman.game.data.EventType.ChangeDirection, (data) => {
-            const changeDirectionEvent = data.event(new xyz.bomberman.game.data.ChangeDirectionEvent())
+        this.on(EventType.ChangeDirection, (data) => {
+            const changeDirectionEvent = data.event(new ChangeDirectionEvent())
             this.changeDirection({
                 id: changeDirectionEvent.id(),
                 direction: changeDirectionEvent.direction(),
@@ -130,8 +145,8 @@ export default class Game {
         });
 
         // receive enemy player movements
-        this.on(xyz.bomberman.game.data.EventType.MovePlayer, (data) => {
-            const movePlayerEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+        this.on(EventType.MovePlayer, (data) => {
+            const movePlayerEvent = data.event(new MovePlayerEvent())
             this.moveEnemy({
                 id: movePlayerEvent.id(),
                 x: movePlayerEvent.x(),
@@ -141,9 +156,9 @@ export default class Game {
         });
 
         // player grabbed item
-        this.on(xyz.bomberman.game.data.EventType.GrabItem, (data) => {
+        this.on(EventType.GrabItem, (data) => {
             // {id: STRING, x: NUMBER, y: NUMBER, direction: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
-            const grabItemEvent = data.event(new xyz.bomberman.game.data.GrabItemEvent())
+            const grabItemEvent = data.event(new GrabItemEvent())
             const item = grabItemEvent.item();
             const position = item.position();
             this.pickUpItem({
@@ -160,8 +175,8 @@ export default class Game {
 
         // receive bombs set by enemies
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.on(xyz.bomberman.game.data.EventType.PlaceBomb, (data) => {
-            const placeBombEvent = data.event(new xyz.bomberman.game.data.PlaceBombEvent())
+        this.on(EventType.PlaceBomb, (data) => {
+            const placeBombEvent = data.event(new PlaceBombEvent())
             this.receiveBomb({
                 x: placeBombEvent.x(),
                 y: placeBombEvent.y(),
@@ -170,8 +185,8 @@ export default class Game {
 
         // receive items created by exploding walls
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.on(xyz.bomberman.game.data.EventType.CreateItem, (data) => {
-            const createItemEvent = data.event(new xyz.bomberman.game.data.CreateItemEvent())
+        this.on(EventType.CreateItem, (data) => {
+            const createItemEvent = data.event(new CreateItemEvent())
             // {position: {x: NUMBER, y: NUMBER}, type: STRING}
             const position = createItemEvent.position();
             this.receiveItem({
@@ -184,8 +199,8 @@ export default class Game {
         });
 
         // receive walls set by enemies
-        this.on(xyz.bomberman.game.data.EventType.PlaceWall, (data) => {
-            const placeWallEvent = data.event(new xyz.bomberman.game.data.PlaceWallEvent())
+        this.on(EventType.PlaceWall, (data) => {
+            const placeWallEvent = data.event(new PlaceWallEvent())
             // {wallId: STRING, x: NUMBER, y: NUMBER, id: STRING}
             this.receiveWall({
                 id: placeWallEvent.id(),
@@ -197,8 +212,8 @@ export default class Game {
 
         // update enemy inventory
         // {id: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
-        this.on(xyz.bomberman.game.data.EventType.UpdateInventory, (event) => {
-            const updateInventoryEvent = event.event(new xyz.bomberman.game.data.UpdateInventoryEvent())
+        this.on(EventType.UpdateInventory, (event) => {
+            const updateInventoryEvent = event.event(new UpdateInventoryEvent())
             const data = {
                 id: updateInventoryEvent.id(),
                 amountBombs: updateInventoryEvent.amountBombs(),
@@ -217,14 +232,10 @@ export default class Game {
         });
 
         // update remaining players
-        this.on(xyz.bomberman.game.data.EventType.DeletePlayer, (data) => {
-            const deletePlayerEvent = data.event(new xyz.bomberman.game.data.DeletePlayerEvent())
+        this.on(EventType.DeletePlayer, (data) => {
+            const deletePlayerEvent = data.event(new DeletePlayerEvent())
             this.deletePlayer({id: deletePlayerEvent.id()});
         });
-
-        // this.on(xyz.bomberman.game.data.EventType.DeleteWall, (data) => {})
-
-
 
 
         // START GAME
@@ -243,11 +254,11 @@ export default class Game {
             onNext(t) {
                 if (firstEvent) {
                     firstEvent = false;
-                    const game = xyz.bomberman.game.data.Game.getRootAsGame(new flatbuffers.ByteBuffer(t.data));
+                    const game = gameXyz.bomberman.game.data.Game.getRootAsGame(new flatbuffers.ByteBuffer(t.data));
                     callbacks['game.start'](game)
                     return;
                 }
-                const event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
+                const event = GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
                 callbacks[event.eventType()](event);
             },
             onError(err) {
@@ -271,12 +282,12 @@ export default class Game {
             });
             this.rsocketEmit = (type, builderFunction) => {
                 const builder = new flatbuffers.Builder()
-                const gameEventOffset = xyz.bomberman.game.data.GameEvent.createGameEvent(
+                const gameEventOffset = GameEvent.createGameEvent(
                     builder,
                     type,
                     builderFunction(builder)
                 );
-                xyz.bomberman.game.data.GameEvent.finishGameEventBuffer(builder, gameEventOffset);
+                GameEvent.finishGameEventBuffer(builder, gameEventOffset);
                 const bytes = builder.asUint8Array();
                 const data = Buffer.from(bytes);
                 subscriber.onNext({
@@ -308,8 +319,8 @@ export default class Game {
     broadcastReaction(reaction) {
         console.log(reaction)
         // {id:this.id, reaction: reaction}
-        this.emit(xyz.bomberman.game.data.EventType.Reaction, builder => {
-            return xyz.bomberman.game.data.ReactionEvent.createReactionEvent(
+        this.emit(EventType.Reaction, builder => {
+            return ReactionEvent.createReactionEvent(
                 builder,
                 builder.createString(this.id),
                 builder.createString(reaction),
@@ -318,9 +329,9 @@ export default class Game {
     }
 
     broadcastPosition(position) {
-        this.emit(xyz.bomberman.game.data.EventType.MovePlayer,
+        this.emit(EventType.MovePlayer,
             (builder) =>
-                xyz.bomberman.game.data.MovePlayerEvent.createMovePlayerEvent(
+                MovePlayerEvent.createMovePlayerEvent(
                     builder,
                     builder.createString(position.id),
                     position.x,
@@ -331,9 +342,9 @@ export default class Game {
     }
 
     broadcastDirection(direction) {
-        this.emit(xyz.bomberman.game.data.EventType.ChangeDirection,
+        this.emit(EventType.ChangeDirection,
             (builder) => {
-                return xyz.bomberman.game.data.ChangeDirectionEvent.createChangeDirectionEvent(
+                return ChangeDirectionEvent.createChangeDirectionEvent(
                     builder,
                     builder.createString(direction.id),
                     builder.createString(direction.direction),
@@ -344,9 +355,9 @@ export default class Game {
 
     broadcastWall(wall) {
         // {id: this.id, x: nextPosition.x, y: nextPosition.y, wallId: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.emit(xyz.bomberman.game.data.EventType.PlaceWall,
+        this.emit(EventType.PlaceWall,
             (builder) => {
-                return xyz.bomberman.game.data.PlaceWallEvent.createPlaceWallEvent(
+                return PlaceWallEvent.createPlaceWallEvent(
                     builder,
                     builder.createString(wall.id),
                     builder.createString(wall.wallId),
@@ -359,9 +370,9 @@ export default class Game {
     }
 
     broadcastBomb(bomb) {
-        this.emit(xyz.bomberman.game.data.EventType.PlaceBomb,
+        this.emit(EventType.PlaceBomb,
             (builder) => {
-                return xyz.bomberman.game.data.PlaceBombEvent.createPlaceBombEvent(
+                return PlaceBombEvent.createPlaceBombEvent(
                     builder,
                     builder.createString(bomb.id),
                     bomb.x,
@@ -375,12 +386,12 @@ export default class Game {
     broadcastItem(item) {
         // {position:position, type: item_type}
         //this.emit(CREATE_ITEM, item);
-        this.emit(xyz.bomberman.game.data.EventType.CreateItem,
+        this.emit(EventType.CreateItem,
             (builder) => {
                 let typeOffset = builder.createString(item.type);
-                return xyz.bomberman.game.data.CreateItemEvent.createCreateItemEvent(
+                return CreateItemEvent.createCreateItemEvent(
                     builder,
-                    xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y),
+                    Position.createPosition(builder, item.position.x, item.position.y),
                     typeOffset,
                 );
             }
@@ -389,9 +400,9 @@ export default class Game {
     }
 
     broadcastDeletedPlayer(player) {
-        this.emit(xyz.bomberman.game.data.EventType.DeletePlayer,
+        this.emit(EventType.DeletePlayer,
             (builder) =>
-                xyz.bomberman.game.data.DeletePlayerEvent.createDeletePlayerEvent(
+                DeletePlayerEvent.createDeletePlayerEvent(
                     builder,
                     builder.createString(player.id),
                 )
@@ -400,9 +411,9 @@ export default class Game {
 
     broadcastInventory(state) {
         // {id: player.id, amountWalls: player.amountWalls, amountBombs: player.amountBombs, health: player.health};
-        this.emit(xyz.bomberman.game.data.EventType.UpdateInventory,
+        this.emit(EventType.UpdateInventory,
             (builder) =>
-                xyz.bomberman.game.data.UpdateInventoryEvent.createUpdateInventoryEvent(
+                UpdateInventoryEvent.createUpdateInventoryEvent(
                     builder,
                     builder.createString(state.id),
                     state.amountWalls,
@@ -597,15 +608,15 @@ export default class Game {
                 for (const item of this.items) {
                     if (item.position.x === player.position.x
                         && item.position.y === player.position.y) {
-                        this.emit(xyz.bomberman.game.data.EventType.GrabItem,
+                        this.emit(EventType.GrabItem,
                             (builder) => {
                                 let itemTypeOffset = builder.createString(item.type);
-                                let createItemOffset = xyz.bomberman.game.data.Item.createItem(
+                                let createItemOffset = Item.createItem(
                                     builder,
-                                    xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y),
+                                    Position.createPosition(builder, item.position.x, item.position.y),
                                     itemTypeOffset
                                 )
-                                return xyz.bomberman.game.data.GrabItemEvent.createGrabItemEvent(
+                                return GrabItemEvent.createGrabItemEvent(
                                     builder,
                                     createItemOffset,
                                     builder.createString(player.id),

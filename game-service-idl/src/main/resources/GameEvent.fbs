@@ -123,10 +123,4 @@ table GameEvent {
   event: EventType;
 }
 
-table Game {
-  players: [Player];
-  items: [Item];
-  walls: [Wall];
-}
-
 root_type GameEvent;
