@@ -3,6 +3,7 @@
 import Bomb from "./Bomb.js";
 import Player from './Player.js';
 import Wall from './Wall.js';
+import Item from './Item.js';
 import {
     BACKGROUNDMUSIC,
     BOMBMUSIC,
@@ -37,7 +38,6 @@ const UpdateInventoryEvent = xyz.bomberman.game.data.UpdateInventoryEvent;
 const DeletePlayerEvent = xyz.bomberman.game.data.DeletePlayerEvent;
 const GameEvent = xyz.bomberman.game.data.GameEvent;
 const Position = xyz.bomberman.game.data.Position;
-const Item = xyz.bomberman.game.data.Item;
 
 export default class Game {
 
@@ -610,8 +610,8 @@ export default class Game {
                         && item.position.y === player.position.y) {
                         this.emit(EventType.GrabItem,
                             (builder) => {
-                                let itemTypeOffset = builder.createString(item.type);
-                                let createItemOffset = Item.createItem(
+                                const itemTypeOffset = builder.createString(item.type);
+                                const createItemOffset = xyz.bomberman.game.data.Item.createItem(
                                     builder,
                                     Position.createPosition(builder, item.position.x, item.position.y),
                                     itemTypeOffset
