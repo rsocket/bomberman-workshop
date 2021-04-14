@@ -200,10 +200,20 @@ public class Game {
 //        });
 //        break;
 //      }
-//      case EventType.UpdateInventory: {
-//        var data = (Event.UpdateInventoryEvent) event;
+  //      case EventType.HurtPlayer: {
+//        var data = (Event.HurtPlayerEvent) event;
 //        broadcast(game, in, data);
-//
+//        game.positionPlayers.forEach(player -> {
+//          if (player.id.equals(data.id)) {
+//            player.health--;
+//          }
+//        });
+      case EventType.HurtPlayer: {
+        broadcast(playerId, gameEvent);
+        break;
+      }
+      case EventType.MovePlayer: {
+        broadcast(playerId, gameEvent);
 //        game.positionPlayers.forEach(player -> {
 //          if (player.id.equals(data.id)) {
 //            player.amountBombs = data.amountBombs;
@@ -213,17 +223,11 @@ public class Game {
 //        });
 //        break;
 //      }
-//      case EventType.HurtPlayer: {
-//        var data = (Event.HurtPlayerEvent) event;
-//        broadcast(game, in, data);
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.health--;
-//          }
-//        });
-//        break;
-//      }
-//      case EventType.ChangeDirection: {
+
+        break;
+      }
+      case EventType.ChangeDirection: {
+        broadcast(playerId, gameEvent);
 //        var data = (Event.ChangeDirectionEvent) event;
 //        broadcast(game, in, data);
 //        game.positionPlayers.forEach(player -> {
@@ -232,8 +236,8 @@ public class Game {
 //            player.direction = data.direction;
 //          }
 //        });
-//        break;
-//      }
+        break;
+      }
       default:
         System.out.println("unknown event: " + gameEvent.eventType());
         // throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());

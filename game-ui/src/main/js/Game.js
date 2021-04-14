@@ -152,12 +152,22 @@ export default class Game {
 
         // receive direction changes
         this.on(xyz.bomberman.game.data.EventType.ChangeDirection, (data) => {
-            this.changeDirection(data)
+            const changeDirectionEvent = data.event(new xyz.bomberman.game.data.ChangeDirectionEvent())
+            this.changeDirection({
+                id: changeDirectionEvent.id(),
+                direction: changeDirectionEvent.direction(),
+            })
         });
 
         // receive enemy player movements
         this.on(xyz.bomberman.game.data.EventType.MovePlayer, (data) => {
-            this.moveEnemy(data);
+            const movePlayerEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+            this.moveEnemy({
+                id: movePlayerEvent.id(),
+                x: movePlayerEvent.x(),
+                y: movePlayerEvent.y(),
+                direction: movePlayerEvent.direction(),
+            });
         });
 
         // player grabbed item
@@ -327,16 +337,24 @@ export default class Game {
             (builder) =>
                 xyz.bomberman.game.data.MovePlayerEvent.createMovePlayerEvent(
                     builder,
-                    0,
+                    builder.createString(position.id),
                     position.x,
                     position.y,
-                    0
+                    builder.createString(position.direction)
                 )
         );
     }
 
     broadcastDirection(direction) {
-        this.emit(CHANGE_DIRECTION, direction);
+        this.emit(xyz.bomberman.game.data.EventType.ChangeDirection,
+            (builder) => {
+                return xyz.bomberman.game.data.ChangeDirectionEvent.createChangeDirectionEvent(
+                    builder,
+                    builder.createString(direction.id),
+                    builder.createString(direction.direction),
+                );
+            }
+        )
     }
 
     broadcastWall(wall) {
@@ -588,7 +606,7 @@ export default class Game {
     /**
      * receive direction change from enemy players
      * is being called in App.js whenever socket receives a signal
-     * @param data = {id: STRING, x: NUMBER, y: NUMBER, direction: STRING}
+     * @param data = {id: STRING, direction: STRING}
      */
     changeDirection(data) {
         this.players.forEach(player => {
