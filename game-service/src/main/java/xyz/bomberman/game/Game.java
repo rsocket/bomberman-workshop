@@ -129,19 +129,21 @@ public class Game {
 //        System.out.println("Reaction: " + event.reaction());
         break;
       }
-//      case EventType.DeleteWall: {
+      case EventType.DeleteWall: {
+        broadcast(playerId, gameEvent);
 //        var data = (Event.DeleteWallEvent) event;
 //        var wallId = (String) data.wallId;
 //        game.positionWalls.removeIf(wall -> wall.wallId.equals(wallId));
-//        break;
-//      }
-//      case EventType.DeletePlayer: {
+        break;
+      }
+      case EventType.DeletePlayer: {
+        broadcast(playerId, gameEvent);
 //        var data = (Event.DeletePlayerEvent) event;
 //        game.positionPlayers.removeIf(player -> player.id.equals(data.id));
 //        broadcast(game, in, data);
-//        break;
-//      }
-//      case EventType.PlaceWall: {
+        break;
+      }
+      case EventType.PlaceWall: {
 //        var data = (Event.PlaceWallEvent) event;
 //        broadcast(game, in, data);
 //
@@ -152,24 +154,16 @@ public class Game {
 //        });
 //
 //        game.positionWalls.add(new Wall(data.wallId, data.x, data.y, true));
-//        break;
-//      }
+        broadcast(playerId, gameEvent);
+        break;
+      }
 //        case CREATE_ITEM: {
 //          var data = (Event.CreateItemEvent) event;
 //          broadcast(game, in, data);
 //          game.positionItems.add(new Item(data.position, data.type));
 //          break;
 //        }
-//      case EventType.PlaceBomb: {
-//        var data = (Event.PlaceBombEvent) event;
-//        broadcast(game, in, data);
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.amountBombs = data.amountBombs;
-//          }
-//        });
-//        break;
-//      }
+
 //      case EventType.MovePlayer: {
 //        var data = (Event.MovePlayerEvent) event;
 //        broadcast(game, in, data);
@@ -209,6 +203,10 @@ public class Game {
 //          }
 //        });
       case EventType.HurtPlayer: {
+        broadcast(playerId, gameEvent);
+        break;
+      }
+      case EventType.PlaceBomb: {
         broadcast(playerId, gameEvent);
         break;
       }

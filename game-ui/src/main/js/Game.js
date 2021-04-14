@@ -147,7 +147,10 @@ export default class Game {
         // });
 
         this.on(xyz.bomberman.game.data.EventType.HurtPlayer, (data) => {
-            this.hurtPlayer(data);
+            const hurtPlayerEvent = data.event(new xyz.bomberman.game.data.HurtPlayerEvent())
+            this.hurtPlayer({
+                id: hurtPlayerEvent.id()
+            });
         });
 
         // receive direction changes
@@ -178,7 +181,11 @@ export default class Game {
         // receive bombs set by enemies
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
         this.on(xyz.bomberman.game.data.EventType.PlaceBomb, (data) => {
-            this.receiveBomb(data);
+            const placeBombEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+            this.receiveBomb({
+                x: placeBombEvent.x(),
+                y: placeBombEvent.y(),
+            });
         });
 
         // receive items created by exploding walls
@@ -208,8 +215,12 @@ export default class Game {
 
         // update remaining players
         this.on(xyz.bomberman.game.data.EventType.DeletePlayer, (data) => {
-            this.deletePlayer(data);
+            const deletePlayerEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+            this.deletePlayer({id: deletePlayerEvent.id()});
         });
+
+        this.on(xyz.bomberman.game.data.EventType.DeleteWall, (data) => {
+        })
 
 
 
@@ -362,7 +373,17 @@ export default class Game {
     }
 
     broadcastBomb(bomb) {
-        this.emit(PLACE_BOMB, bomb);
+        this.emit(xyz.bomberman.game.data.EventType.PlaceBomb,
+            (builder) => {
+                return xyz.bomberman.game.data.PlaceBombEvent.createPlaceBombEvent(
+                    builder,
+                    builder.createString(bomb.id),
+                    bomb.x,
+                    bomb.y,
+                    bomb.amountBombs,
+                );
+            }
+        )
     }
 
     broadcastItem(item) {
@@ -370,10 +391,25 @@ export default class Game {
     }
 
     broadcastDestroyedWall(wall) {
-        this.emit(DELETE_WALL, {wallId: wall.wallId});
+        this.emit(xyz.bomberman.game.data.EventType.DeleteWall,
+            (builder) => {
+                return xyz.bomberman.game.data.DeleteWallEvent.createDeleteWallEvent(
+                    builder,
+                    builder.createString(wall.wallId),
+                );
+            }
+        )
     }
 
     broadcastDeletedPlayer(player) {
+        this.emit(xyz.bomberman.game.data.EventType.DeletePlayer,
+            (builder) => {
+                return xyz.bomberman.game.data.DeletePlayerEvent.createDeletePlayerEvent(
+                    builder,
+                    builder.createString(player.id),
+                );
+            }
+        )
         this.emit(DELETE_PLAYER, player);
     }
 
