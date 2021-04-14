@@ -18,6 +18,7 @@ const userName = uniqueNamesGenerator({
 
 export function Rooms() {
     const [rooms, setRooms] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(undefined);
     const [ownedRoomId, setOwnedRoomId] = useState(undefined);
     const socket = useRef(undefined);
@@ -34,12 +35,12 @@ export function Rooms() {
                 [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.players.login')],
             ]),
             data: Buffer.from(userName)
-        })
-        .subscribe({
+        }).subscribe({
             onComplete: (payload) => {
                 socket.current = rSocket;
 
                 setUserId(payload.data.toString());
+                setLoading(false);
 
                 rSocket.requestStream({
                     metadata: encodeCompositeMetadata([
@@ -118,37 +119,41 @@ export function Rooms() {
     const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;
     return (
         <div className={"rooms"}>
-            <div>Welcome, {userName} ({userId})</div>
-            {inAGame
-                ? <div/>
-                : <button onClick={createGame}>Create Game</button>
-            }
-            <div>
-                {rooms.map(room =>
-                    <div key={room.id}>
-                        <div>
-                            <div className={"room"}>
-                                <div>Room: {room.id}</div>
-                                <div>Owner: {room.owner.name} Players: {room.players.map(p => p.name).join(", ")}</div>
-                            </div>
-                            {room.players.map(p => p.id).includes(userId)
-                                ? <div style={{float: "left"}}>
-                                    {ownedRoomId === room.id
-                                        ? <button onClick={() => leaveGame(room.id)}>Close</button>
-                                        : <button onClick={() => leaveGame(room.id)}>Leave</button>}
-                                    {ownedRoomId === room.id && room.players.length > 1
-                                        ? <button onClick={() => startGame(room.id)}>Start</button>
-                                        : <div/>}
+            {loading
+                ? <div>Loading...</div>
+                : <div>
+                    <div>Welcome, {userName} ({userId})</div>
+                    {inAGame
+                        ? <div/>
+                        : <button onClick={createGame}>Create Game</button>
+                    }
+                    <div>
+                        {rooms.map(room =>
+                            <div key={room.id}>
+                                <div>
+                                    <div className={"room"}>
+                                        <div>Room: {room.id}</div>
+                                        <div>Owner: {room.owner.name} Players: {room.players.map(p => p.name).join(", ")}</div>
+                                    </div>
+                                    {room.players.map(p => p.id).includes(userId)
+                                        ? <div style={{float: "left"}}>
+                                            {ownedRoomId === room.id
+                                                ? <button onClick={() => leaveGame(room.id)}>Close</button>
+                                                : <button onClick={() => leaveGame(room.id)}>Leave</button>}
+                                            {ownedRoomId === room.id && room.players.length > 1
+                                                ? <button onClick={() => startGame(room.id)}>Start</button>
+                                                : <div/>}
+                                        </div>
+                                        : (inAGame || room.players.length >= 4
+                                            ? <div/>
+                                            : <button onClick={() => joinGame(room.id)}>Join</button>)
+                                    }
                                 </div>
-                                : (inAGame || room.players.length >= 4
-                                    ? <div/>
-                                    : <button onClick={() => joinGame(room.id)}>Join</button>)
-                            }
-                        </div>
-                        <hr style={{width: "100%"}}/>
+                                <hr style={{width: "100%"}}/>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>}
         </div>
     );
 }
