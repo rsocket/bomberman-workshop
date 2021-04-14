@@ -56,13 +56,18 @@ export function Rooms() {
                         const eventType = event.type();
                         const roomId = event.id();
                         const players = [...new Array(event.playersLength()).keys()]
-                        .map(i => {
-                            const player = event.players(i);
-                            return {
-                                id: player.id(),
-                                name: player.name(),
-                            };
-                        })
+                            .map(i => {
+                                const player = event.players(i);
+                                return {
+                                    id: player.id(),
+                                    name: player.name(),
+                                };
+                            })
+                        let playerOwner = event.owner();
+                        const owner = {
+                            id: playerOwner.id(),
+                            name: playerOwner.name(),
+                        };
                         console.log(players);
                         // update all displayed rooms
                         setRooms(rooms => {
@@ -70,11 +75,13 @@ export function Rooms() {
                             if (eventType === xyz.bomberman.room.data.EventType.Added) {
                                 return [{
                                     id: roomId,
+                                    owner: owner,
                                     players: players
                                 }, ...rooms]
                             } else if(eventType === xyz.bomberman.room.data.EventType.Updated) {
                                 return [{
                                     id: roomId,
+                                    owner: owner,
                                     players: players
                                 }, ...rooms.filter(room => room.id !== roomId)]
                             }
@@ -142,13 +149,7 @@ export function Rooms() {
             metadata: encodeCompositeMetadata([
                 [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.start`)],
             ]),
-        }).subscribe({
-            onComplete() {
-                // doesn't work?
-            }
-        })
-
-        console.log("starting the game")
+        }).subscribe()
     }
 
     const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;
@@ -165,12 +166,16 @@ export function Rooms() {
                         <div>
                             <div className={"room"}>
                                 <div>Room: {room.id}</div>
-                                <div>Players: {room.players.map(p => p.name).join(", ")}</div>
+                                <div>Owner: {room.owner.name} Players: {room.players.map(p => p.name).join(", ")}</div>
                             </div>
                             {room.players.map(p => p.id).includes(userId)
                                 ? <div style={{float: "left"}}>
-                                    <button onClick={() => leaveGame(room.id)}>Leave</button>
-                                    <button onClick={() => startGame(room.id)}>Start</button>
+                                    {ownedRoomId === room.id
+                                        ? <button onClick={() => leaveGame(room.id)}>Close</button>
+                                        : <button onClick={() => leaveGame(room.id)}>Leave</button>}
+                                    {ownedRoomId === room.id
+                                        ? <button onClick={() => startGame(room.id)}>Start</button>
+                                        : <div/>}
                                 </div>
                                 : (inAGame || room.players.length >= 4
                                     ? <div/>
