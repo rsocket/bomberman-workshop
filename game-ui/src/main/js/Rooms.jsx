@@ -27,7 +27,7 @@ export function Rooms() {
     useEffect(async () => {
         const [_, rSocket] = await connect(userName, {
             requestChannel(flowable) {
-                return switchUI(flowable);
+                return launchGame(flowable);
             }
         })
         rSocket.requestResponse({
@@ -68,7 +68,6 @@ export function Rooms() {
                             id: playerOwner.id(),
                             name: playerOwner.name(),
                         };
-                        console.log(players);
                         // update all displayed rooms
                         setRooms(rooms => {
                             console.log(rooms);
@@ -101,9 +100,10 @@ export function Rooms() {
         })
     }, []);
 
-    function switchUI(flowable) {
-        var game = new Game("myCanvas", 13, 13, window.assets, userName);
+    function launchGame(flowable) {
+        const game = new Game("myCanvas", 13, 13, window.assets, userName);
         window.game = game;
+
         document.querySelector("#lname").setAttribute("value", userName);
         document.getElementById("gamefield").className = ""
         document.getElementById("root").className = "hidden"

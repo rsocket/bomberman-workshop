@@ -52,9 +52,6 @@ export default class Game {
         this.playMusic(BACKGROUNDMUSIC);
 
 
-        // disable input
-        document.getElementById("login").disabled = true;
-
         // disable login button
         document.getElementById("lname").disabled = true;
 
@@ -87,8 +84,6 @@ export default class Game {
         this.on(
             "game.start",
             (game) => {
-                console.log("start game with " + game.playersLength() + "players")
-
                 const wallsLength = game.wallsLength();
                 for (let i = 0; i < wallsLength; i++) {
                     const wall = game.walls(i);
@@ -263,16 +258,6 @@ export default class Game {
 
     initRsocket(flowable) {
         const callbacks = this.callbacks;
-        const [wsClient, rsocket] = [window.wsClient, window.rsocket];
-        const self = this;
-        wsClient.connectionStatus().subscribe({
-            onSubscribe(s) {
-                s.request(2147483642);
-            },
-            onNext(t) {
-                console.log("status: " + t.kind)
-            }
-        })
         let firstEvent = true;
         flowable.subscribe({
             onSubscribe(s) {
@@ -286,7 +271,6 @@ export default class Game {
                     return;
                 }
                 const event = xyz.bomberman.game.data.GameEvent.getRootAsGameEvent(new flatbuffers.ByteBuffer(t.data));
-                console.log("got: " + event.eventType())
                 callbacks[event.eventType()](event);
             },
             onError(err) {
@@ -309,14 +293,13 @@ export default class Game {
             });
             this.rsocketEmit = (type, builderFunction) => {
                 const builder = new flatbuffers.Builder()
-                var gameEventOffset = xyz.bomberman.game.data.GameEvent.createGameEvent(
+                const gameEventOffset = xyz.bomberman.game.data.GameEvent.createGameEvent(
                     builder,
                     type,
                     builderFunction(builder)
-                )
+                );
                 xyz.bomberman.game.data.GameEvent.finishGameEventBuffer(builder, gameEventOffset);
                 const bytes = builder.asUint8Array();
-                console.log(bytes)
                 const data = Buffer.from(bytes);
                 subscriber.onNext({
                     metadata: encodeCompositeMetadata([
@@ -325,18 +308,6 @@ export default class Game {
                     data
                 })
             };
-            const userId = window.userId;
-            const gameId = window.gameId;
-
-
-            // this.emit(xyz.bomberman.game.data.EventType.LoginPlayerEvent,
-            //     (builder) => {
-            //         xyz.bomberman.game.data.LoginPlayerEvent.createLoginPlayerEvent(
-            //             builder,
-            //             builder.createString(this.id),
-            //             builder.createString(gameId)
-            //         );
-            // });
         })
     }
 

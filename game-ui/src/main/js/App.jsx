@@ -61,31 +61,13 @@ new AssetLoader()
         { name: BOMBERMAN_BURNED, url: '../images/burned_bomberman.png'}
     ])
     .then(assets => {
-        console.log("AAAA")
         ReactDOM.render(
             <React.StrictMode>
                 <Rooms/>
             </React.StrictMode>,
             document.getElementById('root')
         );
-        let game = null;
-        let id = '';
         window.assets = assets;
-
-        document.querySelector("#login").addEventListener("click", function(event) {
-
-            // // prevent refresh of the current screen
-            // event.preventDefault();
-            //
-            // // select input node of DOM by its ID
-            // id = document.querySelector("#lname").value;
-            //
-            // // initialize game when nickname has at least 1 character
-            // if (id !== '') {
-            //     game = new Game("myCanvas", 13, 13, assets, id);
-            // }
-
-        }, false);
 
         document.querySelector("#you_suck_button").addEventListener('click', function (event){
             event.preventDefault();
@@ -116,13 +98,6 @@ new AssetLoader()
                 game.drawReaction({id: game.id, reaction: LOL})
             }
         });
-
-        // const urlParams = new URLSearchParams(window.location.search);
-        // const username = urlParams.get('username');
-        // if (username) {
-        //     document.querySelector("#lname").setAttribute("value", username);
-        //     document.querySelector("#login").click()
-        // }
 
     }).catch(err => {
         console.log(err);
