@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "echo 'heroku, please enable yarn'"
+    "build": "apt update && apt install -y flatbuffers-compiler"
   },
   "engines": {
     "yarn": "1.x"
