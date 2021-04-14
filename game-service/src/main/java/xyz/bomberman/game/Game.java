@@ -120,138 +120,139 @@ public class Game {
 
 
   public void handleEvent(GameEvent gameEvent, String playerId) {
+    broadcast(playerId, gameEvent);
 
-    switch (gameEvent.eventType()) {
-      case EventType.CreateItem: {
-//        var data = (Event.ReactionEvent) event;
-        broadcast(playerId, gameEvent);
-//        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
-//        System.out.println("Reaction: " + event.reaction());
-        break;
-      }
-      case EventType.Reaction: {
-//        var data = (Event.ReactionEvent) event;
-        broadcast(playerId, gameEvent);
-//        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
-//        System.out.println("Reaction: " + event.reaction());
-        break;
-      }
-      case EventType.DeleteWall: {
-        broadcast(playerId, gameEvent);
-//        var data = (Event.DeleteWallEvent) event;
-//        var wallId = (String) data.wallId;
-//        game.positionWalls.removeIf(wall -> wall.wallId.equals(wallId));
-        break;
-      }
-      case EventType.DeletePlayer: {
-        broadcast(playerId, gameEvent);
-//        var data = (Event.DeletePlayerEvent) event;
-//        game.positionPlayers.removeIf(player -> player.id.equals(data.id));
-//        broadcast(game, in, data);
-        break;
-      }
-      case EventType.PlaceWall: {
-//        var data = (Event.PlaceWallEvent) event;
-//        broadcast(game, in, data);
+//    switch (gameEvent.eventType()) {
+//      case EventType.CreateItem: {
+////        var data = (Event.ReactionEvent) event;
+//        broadcast(playerId, gameEvent);
+////        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
+////        System.out.println("Reaction: " + event.reaction());
+//        break;
+//      }
+//      case EventType.Reaction: {
+////        var data = (Event.ReactionEvent) event;
+//        broadcast(playerId, gameEvent);
+////        ReactionEvent event = (ReactionEvent) gameEvent.event(new ReactionEvent());
+////        System.out.println("Reaction: " + event.reaction());
+//        break;
+//      }
+//      case EventType.DeleteWall: {
+//        broadcast(playerId, gameEvent);
+////        var data = (Event.DeleteWallEvent) event;
+////        var wallId = (String) data.wallId;
+////        game.positionWalls.removeIf(wall -> wall.wallId.equals(wallId));
+//        break;
+//      }
+//      case EventType.DeletePlayer: {
+//        broadcast(playerId, gameEvent);
+////        var data = (Event.DeletePlayerEvent) event;
+////        game.positionPlayers.removeIf(player -> player.id.equals(data.id));
+////        broadcast(game, in, data);
+//        break;
+//      }
+//      case EventType.PlaceWall: {
+////        var data = (Event.PlaceWallEvent) event;
+////        broadcast(game, in, data);
+////
+////        game.positionPlayers.forEach(player -> {
+////          if (player.id.equals(data.id)) {
+////            player.amountWalls = data.amountWalls;
+////          }
+////        });
+////
+////        game.positionWalls.add(new Wall(data.wallId, data.x, data.y, true));
+//        broadcast(playerId, gameEvent);
+//        break;
+//      }
+////        case CREATE_ITEM: {
+////          var data = (Event.CreateItemEvent) event;
+////          broadcast(game, in, data);
+////          game.positionItems.add(new Item(data.position, data.type));
+////          break;
+////        }
 //
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.amountWalls = data.amountWalls;
-//          }
-//        });
-//
-//        game.positionWalls.add(new Wall(data.wallId, data.x, data.y, true));
-        broadcast(playerId, gameEvent);
-        break;
-      }
-//        case CREATE_ITEM: {
-//          var data = (Event.CreateItemEvent) event;
-//          broadcast(game, in, data);
-//          game.positionItems.add(new Item(data.position, data.type));
-//          break;
-//        }
-
+////      case EventType.MovePlayer: {
+////        var data = (Event.MovePlayerEvent) event;
+////        broadcast(game, in, data);
+////
+////        game.positionPlayers.forEach(player -> {
+////          if (player.id.equals(data.id)) {
+////            player.x = data.x;
+////            player.y = data.y;
+////            player.direction = data.direction;
+////
+////            var indexOfItem = -1;
+////            Item item = null;
+////            for (var i = 0; i < game.positionItems.size(); i++) {
+////              item = game.positionItems.get(i);
+////
+////              if (item.position.x == data.x && item.position.y == data.y) {
+////                indexOfItem = i;
+////                break;
+////              }
+////            }
+////
+////            if (indexOfItem >= 0) {
+////              game.positionItems.remove(indexOfItem);
+////              var data2 = new Event.GrabItemEvent(item, player);
+////              broadcast(game, null, data2);
+////            }
+////          }
+////        });
+////        break;
+////      }
+//  //      case EventType.HurtPlayer: {
+////        var data = (Event.HurtPlayerEvent) event;
+////        broadcast(game, in, data);
+////        game.positionPlayers.forEach(player -> {
+////          if (player.id.equals(data.id)) {
+////            player.health--;
+////          }
+////        });
+//      case EventType.HurtPlayer: {
+//        broadcast(playerId, gameEvent);
+//        break;
+//      }
+//      case EventType.PlaceBomb: {
+//        broadcast(playerId, gameEvent);
+//        break;
+//      }
 //      case EventType.MovePlayer: {
-//        var data = (Event.MovePlayerEvent) event;
-//        broadcast(game, in, data);
+//        broadcast(playerId, gameEvent);
+////        game.positionPlayers.forEach(player -> {
+////          if (player.id.equals(data.id)) {
+////            player.amountBombs = data.amountBombs;
+////            player.amountWalls = data.amountWalls;
+////            player.health = data.health;
+////          }
+////        });
+////        break;
+////      }
 //
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.x = data.x;
-//            player.y = data.y;
-//            player.direction = data.direction;
-//
-//            var indexOfItem = -1;
-//            Item item = null;
-//            for (var i = 0; i < game.positionItems.size(); i++) {
-//              item = game.positionItems.get(i);
-//
-//              if (item.position.x == data.x && item.position.y == data.y) {
-//                indexOfItem = i;
-//                break;
-//              }
-//            }
-//
-//            if (indexOfItem >= 0) {
-//              game.positionItems.remove(indexOfItem);
-//              var data2 = new Event.GrabItemEvent(item, player);
-//              broadcast(game, null, data2);
-//            }
-//          }
-//        });
 //        break;
 //      }
-  //      case EventType.HurtPlayer: {
-//        var data = (Event.HurtPlayerEvent) event;
-//        broadcast(game, in, data);
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.health--;
-//          }
-//        });
-      case EventType.HurtPlayer: {
-        broadcast(playerId, gameEvent);
-        break;
-      }
-      case EventType.PlaceBomb: {
-        broadcast(playerId, gameEvent);
-        break;
-      }
-      case EventType.MovePlayer: {
-        broadcast(playerId, gameEvent);
-//        game.positionPlayers.forEach(player -> {
-//          if (player.id.equals(data.id)) {
-//            player.amountBombs = data.amountBombs;
-//            player.amountWalls = data.amountWalls;
-//            player.health = data.health;
-//          }
-//        });
+//      case EventType.UpdateInventory: {
+//        broadcast(playerId, gameEvent);
+//
 //        break;
 //      }
-
-        break;
-      }
-      case EventType.UpdateInventory: {
-        broadcast(playerId, gameEvent);
-
-        break;
-      }
-      case EventType.ChangeDirection: {
-        broadcast(playerId, gameEvent);
-//        var data = (Event.ChangeDirectionEvent) event;
-//        broadcast(game, in, data);
-//        game.positionPlayers.forEach(player -> {
-//          var id = data.id;
-//          if (player.id.equals(id)) {
-//            player.direction = data.direction;
-//          }
-//        });
-        break;
-      }
-      default:
-        System.out.println("unknown event: " + gameEvent.eventType());
-        // throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
-    }
+//      case EventType.ChangeDirection: {
+//        broadcast(playerId, gameEvent);
+////        var data = (Event.ChangeDirectionEvent) event;
+////        broadcast(game, in, data);
+////        game.positionPlayers.forEach(player -> {
+////          var id = data.id;
+////          if (player.id.equals(id)) {
+////            player.direction = data.direction;
+////          }
+////        });
+//        break;
+//      }
+//      default:
+//        System.out.println("unknown event: " + gameEvent.eventType());
+//        // throw new IllegalArgumentException("unknown event: " + gameEvent.eventType());
+//    }
   }
 
   public void broadcast(String senderPlayerId, GameEvent gameEvent) {

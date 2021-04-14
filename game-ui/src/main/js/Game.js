@@ -7,30 +7,17 @@ import Wall from './Wall.js';
 import {
     BACKGROUNDMUSIC,
     BOMBMUSIC,
-    CHANGE_DIRECTION,
     CREATE_ITEM,
-    CREATE_PLAYER,
-    CREATE_WALLS,
-    DELETE_PLAYER,
-    DELETE_WALL,
     DIEDMUSIC,
-    GRAB_ITEM,
-    HURT_PLAYER,
     ITEM_EXTRA_BOMB,
     ITEM_EXTRA_LIFE,
     ITEM_RUN_FASTER,
-    LOGIN_PLAYER,
     LOSERMUSIC,
-    MOVE_PLAYER,
-    PLACE_BOMB,
     PLACE_WALL,
-    REACTION,
     SETBOMBMUSIC,
     SPOILMUSIC,
-    UPDATE_INVENTORY,
     WINNERMUSIC,
 } from "./constant.js";
-import {connect} from "./RSocket.js"
 import {Flowable} from "rsocket-flowable";
 import {flatbuffers} from "flatbuffers";
 
@@ -175,13 +162,26 @@ export default class Game {
 
         // player grabbed item
         this.on(xyz.bomberman.game.data.EventType.GrabItem, (data) => {
-            this.pickUpItem(data);
+            // {id: STRING, x: NUMBER, y: NUMBER, direction: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
+            const grabItemEvent = data.event(new xyz.bomberman.game.data.GrabItemEvent())
+            const item = grabItemEvent.item();
+            const position = item.position();
+            this.pickUpItem({
+                item: {
+                    position: {
+                        x: position.x(),
+                        y: position.y(),
+                    },
+                    type: item.type(),
+                },
+                playerId: grabItemEvent.playerId(),
+            });
         });
 
         // receive bombs set by enemies
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
         this.on(xyz.bomberman.game.data.EventType.PlaceBomb, (data) => {
-            const placeBombEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+            const placeBombEvent = data.event(new xyz.bomberman.game.data.PlaceBombEvent())
             this.receiveBomb({
                 x: placeBombEvent.x(),
                 y: placeBombEvent.y(),
@@ -190,18 +190,41 @@ export default class Game {
 
         // receive items created by exploding walls
         // {x: nextPosition.x, y: nextPosition.y, id: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
-        this.on(CREATE_ITEM, (data) => {
-            this.receiveItem(data);
+        this.on(xyz.bomberman.game.data.EventType.CreateItem, (data) => {
+            const createItemEvent = data.event(new xyz.bomberman.game.data.CreateItemEvent())
+            // {position: {x: NUMBER, y: NUMBER}, type: STRING}
+            const position = createItemEvent.position();
+            this.receiveItem({
+                position: {
+                    x: position.x(),
+                    y: position.y(),
+                },
+                type: createItemEvent.type(),
+            });
         });
 
         // receive walls set by enemies
         this.on(xyz.bomberman.game.data.EventType.PlaceWall, (data) => {
-            this.receiveWall(data);
+            const placeWallEvent = data.event(new xyz.bomberman.game.data.PlaceWallEvent())
+            // {wallId: STRING, x: NUMBER, y: NUMBER, id: STRING}
+            this.receiveWall({
+                id: placeWallEvent.id(),
+                wallId: placeWallEvent.wallId(),
+                x: placeWallEvent.x(),
+                y: placeWallEvent.y(),
+            });
         });
 
         // update enemy inventory
         // {id: STRING, amountWalls: NUMBER, amountBombs: NUMBER, health: NUMBER}
-        this.on(xyz.bomberman.game.data.EventType.UpdateInventory, (data) => {
+        this.on(xyz.bomberman.game.data.EventType.UpdateInventory, (event) => {
+            const updateInventoryEvent = event.event(new xyz.bomberman.game.data.UpdateInventoryEvent())
+            const data = {
+                id: updateInventoryEvent.id(),
+                amountBombs: updateInventoryEvent.amountBombs(),
+                amountWalls: updateInventoryEvent.amountWalls(),
+                health: updateInventoryEvent.health(),
+            }
             if (data.id !== this.id) {
                 try {
                     document.getElementById(data.id + 'BombText').innerText = data.amountBombs;
@@ -215,7 +238,7 @@ export default class Game {
 
         // update remaining players
         this.on(xyz.bomberman.game.data.EventType.DeletePlayer, (data) => {
-            const deletePlayerEvent = data.event(new xyz.bomberman.game.data.MovePlayerEvent())
+            const deletePlayerEvent = data.event(new xyz.bomberman.game.data.DeletePlayerEvent())
             this.deletePlayer({id: deletePlayerEvent.id()});
         });
 
@@ -369,7 +392,19 @@ export default class Game {
     }
 
     broadcastWall(wall) {
-        this.emit(PLACE_WALL, wall);
+        // {id: this.id, x: nextPosition.x, y: nextPosition.y, wallId: randomID, amountWalls: this.amountWalls, amountBombs: this.amountBombs}
+        this.emit(xyz.bomberman.game.data.EventType.PlaceWall,
+            (builder) => {
+                return xyz.bomberman.game.data.PlaceWallEvent.createPlaceWallEvent(
+                    builder,
+                    builder.createString(wall.id),
+                    builder.createString(wall.wallId),
+                    wall.x,
+                    wall.y,
+                    wall.amountWalls,
+                );
+            }
+        )
     }
 
     broadcastBomb(bomb) {
@@ -391,11 +426,11 @@ export default class Game {
         //this.emit(CREATE_ITEM, item);
         this.emit(xyz.bomberman.game.data.EventType.CreateItem,
             (builder) => {
-                const positionOffset = xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y);
+                let typeOffset = builder.createString(item.type);
                 return xyz.bomberman.game.data.CreateItemEvent.createCreateItemEvent(
                     builder,
-                    positionOffset,
-                    builder.createString(item.type),
+                    xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y),
+                    typeOffset,
                 );
             }
         )
@@ -548,10 +583,10 @@ export default class Game {
      */
     pickUpItem(data) {
         let itemObject = data.item;
-        let localPlayer = data.player.id === this.id;
+        let localPlayer = data.playerId === this.id;
 
         this.players.forEach((player) => {
-            if (player.id === data.player.id) {
+            if (player.id === data.playerId) {
 
                 // change the music for the player
                 this.playMusic(SPOILMUSIC);
@@ -620,6 +655,27 @@ export default class Game {
         this.players.forEach(player => {
             if (player.id === data.id) {
                 player.triggerEvent(data, fastMode);
+                for (const item of this.items) {
+                    if (item.position.x === player.position.x
+                        && item.position.y === player.position.y) {
+                        this.emit(xyz.bomberman.game.data.EventType.GrabItem,
+                            (builder) => {
+                                let itemTypeOffset = builder.createString(item.type);
+                                let createItemOffset = xyz.bomberman.game.data.Item.createItem(
+                                    builder,
+                                    xyz.bomberman.game.data.Position.createPosition(builder, item.position.x, item.position.y),
+                                    itemTypeOffset
+                                )
+                                return xyz.bomberman.game.data.GrabItemEvent.createGrabItemEvent(
+                                    builder,
+                                    createItemOffset,
+                                    builder.createString(player.id),
+                                );
+                            }
+                        )
+                        this.pickUpItem({item: item, playerId: player.id,})
+                    }
+                }
             }
         });
     }

@@ -32,13 +32,14 @@ xyz.bomberman.game.data.EventType = {
   Reaction: 1,
   ChangeDirection: 2,
   CreateItem: 3,
-  HurtPlayer: 4,
-  MovePlayer: 5,
-  DeletePlayer: 6,
-  PlaceBomb: 7,
-  UpdateInventory: 8,
-  PlaceWall: 9,
-  DeleteWall: 10
+  GrabItem: 4,
+  HurtPlayer: 5,
+  MovePlayer: 6,
+  DeletePlayer: 7,
+  PlaceBomb: 8,
+  UpdateInventory: 9,
+  PlaceWall: 10,
+  DeleteWall: 11
 };
 
 /**
@@ -49,13 +50,14 @@ xyz.bomberman.game.data.EventTypeName = {
   '1': 'Reaction',
   '2': 'ChangeDirection',
   '3': 'CreateItem',
-  '4': 'HurtPlayer',
-  '5': 'MovePlayer',
-  '6': 'DeletePlayer',
-  '7': 'PlaceBomb',
-  '8': 'UpdateInventory',
-  '9': 'PlaceWall',
-  '10': 'DeleteWall'
+  '4': 'GrabItem',
+  '5': 'HurtPlayer',
+  '6': 'MovePlayer',
+  '7': 'DeletePlayer',
+  '8': 'PlaceBomb',
+  '9': 'UpdateInventory',
+  '10': 'PlaceWall',
+  '11': 'DeleteWall'
 };
 
 /**
@@ -1387,12 +1389,12 @@ xyz.bomberman.game.data.GrabItemEvent.prototype.item = function(obj) {
 };
 
 /**
- * @param {xyz.bomberman.game.data.Player=} obj
- * @returns {xyz.bomberman.game.data.Player|null}
+ * @param {flatbuffers.Encoding=} optionalEncoding
+ * @returns {string|Uint8Array|null}
  */
-xyz.bomberman.game.data.GrabItemEvent.prototype.player = function(obj) {
+xyz.bomberman.game.data.GrabItemEvent.prototype.playerId = function(optionalEncoding) {
   var offset = this.bb.__offset(this.bb_pos, 6);
-  return offset ? (obj || new xyz.bomberman.game.data.Player).__init(this.bb.__indirect(this.bb_pos + offset), this.bb) : null;
+  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
@@ -1412,10 +1414,10 @@ xyz.bomberman.game.data.GrabItemEvent.addItem = function(builder, itemOffset) {
 
 /**
  * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} playerOffset
+ * @param {flatbuffers.Offset} playerIdOffset
  */
-xyz.bomberman.game.data.GrabItemEvent.addPlayer = function(builder, playerOffset) {
-  builder.addFieldOffset(1, playerOffset, 0);
+xyz.bomberman.game.data.GrabItemEvent.addPlayerId = function(builder, playerIdOffset) {
+  builder.addFieldOffset(1, playerIdOffset, 0);
 };
 
 /**
@@ -1430,13 +1432,13 @@ xyz.bomberman.game.data.GrabItemEvent.endGrabItemEvent = function(builder) {
 /**
  * @param {flatbuffers.Builder} builder
  * @param {flatbuffers.Offset} itemOffset
- * @param {flatbuffers.Offset} playerOffset
+ * @param {flatbuffers.Offset} playerIdOffset
  * @returns {flatbuffers.Offset}
  */
-xyz.bomberman.game.data.GrabItemEvent.createGrabItemEvent = function(builder, itemOffset, playerOffset) {
+xyz.bomberman.game.data.GrabItemEvent.createGrabItemEvent = function(builder, itemOffset, playerIdOffset) {
   xyz.bomberman.game.data.GrabItemEvent.startGrabItemEvent(builder);
   xyz.bomberman.game.data.GrabItemEvent.addItem(builder, itemOffset);
-  xyz.bomberman.game.data.GrabItemEvent.addPlayer(builder, playerOffset);
+  xyz.bomberman.game.data.GrabItemEvent.addPlayerId(builder, playerIdOffset);
   return xyz.bomberman.game.data.GrabItemEvent.endGrabItemEvent(builder);
 }
 

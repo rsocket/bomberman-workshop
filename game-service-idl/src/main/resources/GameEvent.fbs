@@ -56,7 +56,7 @@ table ChangeDirectionEvent  {
 
 table GrabItemEvent  {
   item: Item;
-  player: Player;
+  playerId: string;
 }
 
 table HurtPlayerEvent  {
@@ -110,6 +110,7 @@ union EventType {
     ChangeDirection: ChangeDirectionEvent,
 
     CreateItem: CreateItemEvent,
+    GrabItem: GrabItemEvent,
 
     HurtPlayer: HurtPlayerEvent,
     MovePlayer: MovePlayerEvent,
