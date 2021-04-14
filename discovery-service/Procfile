@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -cp /Users/sergey/git/bomberman-workshop/discovery-service/build/libs/discovery-service-all.jar xyz.bomberman.discovery.DiscoveryApplication
+web: java $JAVA_OPTS -cp discovery-service/build/libs/discovery-service-all.jar xyz.bomberman.discovery.DiscoveryApplication
