@@ -107,26 +107,11 @@ export default class Game {
                 }
             });
 
-        this.on(
-            xyz.bomberman.game.data.EventType.Reaction,
-            (data) => {
+        this.on(xyz.bomberman.game.data.EventType.Reaction, (data) => {
                 const reactionEvent = data.event(new xyz.bomberman.game.data.ReactionEvent())
                 this.drawReaction({id: reactionEvent.id(), reaction: reactionEvent.reaction()});
             },
         );
-
-        // // after logging in your player, the server will send you all generated walls
-        // this.on(CREATE_WALLS, (wallEvent) => {
-        //     const walls = wallEvent.walls;
-        //     walls.forEach(wall => {
-        //         let position = {x: wall.x, y: wall.y};
-        //         this.walls.push(new Wall(position, 1, wall.isDestructible, assets, 40, wall.wallId));
-        //     });
-        // });
-
-        // this.on(CREATE_PLAYER, (data) => {
-        //
-        // });
 
         this.on(xyz.bomberman.game.data.EventType.HurtPlayer, (data) => {
             const hurtPlayerEvent = data.event(new xyz.bomberman.game.data.HurtPlayerEvent())
@@ -237,8 +222,7 @@ export default class Game {
             this.deletePlayer({id: deletePlayerEvent.id()});
         });
 
-        this.on(xyz.bomberman.game.data.EventType.DeleteWall, (data) => {
-        })
+        // this.on(xyz.bomberman.game.data.EventType.DeleteWall, (data) => {})
 
 
 
@@ -408,17 +392,6 @@ export default class Game {
 
     }
 
-    broadcastDestroyedWall(wall) {
-        this.emit(xyz.bomberman.game.data.EventType.DeleteWall,
-            (builder) => {
-                return xyz.bomberman.game.data.DeleteWallEvent.createDeleteWallEvent(
-                    builder,
-                    builder.createString(wall.wallId),
-                );
-            }
-        )
-    }
-
     broadcastDeletedPlayer(player) {
         this.emit(xyz.bomberman.game.data.EventType.DeletePlayer,
             (builder) =>
@@ -427,7 +400,6 @@ export default class Game {
                     builder.createString(player.id),
                 )
         )
-        //this.emit(DELETE_PLAYER, player);
     }
 
     broadcastInventory(state) {

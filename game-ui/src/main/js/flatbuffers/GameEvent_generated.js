@@ -38,8 +38,7 @@ xyz.bomberman.game.data.EventType = {
   DeletePlayer: 7,
   PlaceBomb: 8,
   UpdateInventory: 9,
-  PlaceWall: 10,
-  DeleteWall: 11
+  PlaceWall: 10
 };
 
 /**
@@ -56,8 +55,7 @@ xyz.bomberman.game.data.EventTypeName = {
   '7': 'DeletePlayer',
   '8': 'PlaceBomb',
   '9': 'UpdateInventory',
-  '10': 'PlaceWall',
-  '11': 'DeleteWall'
+  '10': 'PlaceWall'
 };
 
 /**
@@ -2079,95 +2077,6 @@ xyz.bomberman.game.data.UpdateInventoryEvent.createUpdateInventoryEvent = functi
   xyz.bomberman.game.data.UpdateInventoryEvent.addAmountBombs(builder, amountBombs);
   xyz.bomberman.game.data.UpdateInventoryEvent.addHealth(builder, health);
   return xyz.bomberman.game.data.UpdateInventoryEvent.endUpdateInventoryEvent(builder);
-}
-
-/**
- * @constructor
- */
-xyz.bomberman.game.data.DeleteWallEvent = function() {
-  /**
-   * @type {flatbuffers.ByteBuffer}
-   */
-  this.bb = null;
-
-  /**
-   * @type {number}
-   */
-  this.bb_pos = 0;
-};
-
-/**
- * @param {number} i
- * @param {flatbuffers.ByteBuffer} bb
- * @returns {xyz.bomberman.game.data.DeleteWallEvent}
- */
-xyz.bomberman.game.data.DeleteWallEvent.prototype.__init = function(i, bb) {
-  this.bb_pos = i;
-  this.bb = bb;
-  return this;
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {xyz.bomberman.game.data.DeleteWallEvent=} obj
- * @returns {xyz.bomberman.game.data.DeleteWallEvent}
- */
-xyz.bomberman.game.data.DeleteWallEvent.getRootAsDeleteWallEvent = function(bb, obj) {
-  return (obj || new xyz.bomberman.game.data.DeleteWallEvent).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.ByteBuffer} bb
- * @param {xyz.bomberman.game.data.DeleteWallEvent=} obj
- * @returns {xyz.bomberman.game.data.DeleteWallEvent}
- */
-xyz.bomberman.game.data.DeleteWallEvent.getSizePrefixedRootAsDeleteWallEvent = function(bb, obj) {
-  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-  return (obj || new xyz.bomberman.game.data.DeleteWallEvent).__init(bb.readInt32(bb.position()) + bb.position(), bb);
-};
-
-/**
- * @param {flatbuffers.Encoding=} optionalEncoding
- * @returns {string|Uint8Array|null}
- */
-xyz.bomberman.game.data.DeleteWallEvent.prototype.wallId = function(optionalEncoding) {
-  var offset = this.bb.__offset(this.bb_pos, 4);
-  return offset ? this.bb.__string(this.bb_pos + offset, optionalEncoding) : null;
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- */
-xyz.bomberman.game.data.DeleteWallEvent.startDeleteWallEvent = function(builder) {
-  builder.startObject(1);
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} wallIdOffset
- */
-xyz.bomberman.game.data.DeleteWallEvent.addWallId = function(builder, wallIdOffset) {
-  builder.addFieldOffset(0, wallIdOffset, 0);
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @returns {flatbuffers.Offset}
- */
-xyz.bomberman.game.data.DeleteWallEvent.endDeleteWallEvent = function(builder) {
-  var offset = builder.endObject();
-  return offset;
-};
-
-/**
- * @param {flatbuffers.Builder} builder
- * @param {flatbuffers.Offset} wallIdOffset
- * @returns {flatbuffers.Offset}
- */
-xyz.bomberman.game.data.DeleteWallEvent.createDeleteWallEvent = function(builder, wallIdOffset) {
-  xyz.bomberman.game.data.DeleteWallEvent.startDeleteWallEvent(builder);
-  xyz.bomberman.game.data.DeleteWallEvent.addWallId(builder, wallIdOffset);
-  return xyz.bomberman.game.data.DeleteWallEvent.endDeleteWallEvent(builder);
 }
 
 /**

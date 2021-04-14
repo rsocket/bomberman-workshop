@@ -155,18 +155,13 @@ export default class Bomb extends Element {
                 }
             })
         });
-        
+
         // IMPORTANT! Because .splice() shortens the array, we safe all indexes, which have to be deleted inside of 'let indexes'
         indexes.sort((a, b) => {return b-a}).forEach((index) => {
-            let wallId = this.game.walls[index].id;
             let position = this.game.walls[index].position;
 
-            this.game.broadcastDestroyedWall({wallId: wallId});
-
             this.game.walls.splice(index, 1);
-
             this.game.createItems(position, this.remoteBomb);
-
         });
     }
 

@@ -84,10 +84,6 @@ table UpdateInventoryEvent  {
   health: int;
 }
 
-table DeleteWallEvent  {
-  wallId: string;
-}
-
 table PlaceWallEvent  {
   id: string;
   wallId: string;
@@ -121,7 +117,6 @@ union EventType {
     UpdateInventory: UpdateInventoryEvent,
 
     PlaceWall: PlaceWallEvent,
-    DeleteWall: DeleteWallEvent,
 }
 
 table GameEvent {
