@@ -9,12 +9,14 @@ public class DiscoveryApplication {
   public static void main(String[] args) {
     final ServiceRegistry serviceRegistry = new ServiceRegistry();
 
-    RSocketServer.create()
+    var server = RSocketServer.create()
         .payloadDecoder(PayloadDecoder.ZERO_COPY)
         .acceptor(new DiscoverySocketAcceptor(serviceRegistry))
-        .bindNow(TcpServerTransport.create(8081))
-        .onClose()
-        .block();
+        .bindNow(TcpServerTransport.create(8081));
+
+
+    System.out.println("started on " + server.address());
+    server.onClose().block();
   }
 
 }

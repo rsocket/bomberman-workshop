@@ -3,6 +3,7 @@ import io.netifi.flatbuffers.plugin.tasks.FlatBuffers
 plugins {
     id "java"
     id "io.netifi.flatbuffers"
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 configurations {
