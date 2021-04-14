@@ -18,7 +18,6 @@ const userName = uniqueNamesGenerator({
 
 export function Rooms() {
     const [rooms, setRooms] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(undefined);
     const [ownedRoomId, setOwnedRoomId] = useState(undefined);
     const socket = useRef(undefined);
@@ -40,7 +39,6 @@ export function Rooms() {
                 socket.current = rSocket;
 
                 setUserId(payload.data.toString());
-                setLoading(false);
 
                 rSocket.requestStream({
                     metadata: encodeCompositeMetadata([
@@ -119,7 +117,7 @@ export function Rooms() {
     const inAGame = rooms.filter(room => room.players.map(p => p.id).includes(userId)).length > 0;
     return (
         <div className={"rooms"}>
-            {loading
+            {!userId
                 ? <div>Loading...</div>
                 : <div>
                     <div>Welcome, {userName} ({userId})</div>
