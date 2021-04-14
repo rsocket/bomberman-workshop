@@ -1,4 +1,3 @@
-flatbuffers-compiler
-
-:repo:deb http://archive.ubuntu.com/ubuntu/ groovy main
+https://launchpad.net/ubuntu/+source/flatbuffers/1.12.1~git20200711.33e2d80+dfsg1-0.3/+build/19612152/+files/libflatbuffers1_1.12.1~git20200711.33e2d80+dfsg1-0.3_amd64.deb
+https://launchpad.net/ubuntu/+source/flatbuffers/1.12.1~git20200711.33e2d80+dfsg1-0.3/+build/19612152/+files/flatbuffers-compiler_1.12.1~git20200711.33e2d80+dfsg1-0.3_amd64.deb
 
