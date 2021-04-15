@@ -1,7 +1,7 @@
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import {BufferEncoders, MESSAGE_RSOCKET_COMPOSITE_METADATA, RSocketClient} from "rsocket-core";
 
-export async function connect(responder) {
+export function connect(responder) {
     console.log("connecting");
     const port = window.location.port ? `:${window.location.port}` : "";
     const isSecure = window.location.protocol === 'https:';
@@ -19,6 +19,5 @@ export async function connect(responder) {
         responder: responder,
         transport: wsClient,
     });
-    const rsocket = await socketClient.connect();
-    return [wsClient, rsocket];
+    return socketClient.connect();
 }

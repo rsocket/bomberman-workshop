@@ -106,5 +106,5 @@ APIClient.create = function (onGameStartedHandler) {
   return connect({
     requestChannel: flowable => onGameStartedHandler(flowable)
   })
-  .then(([, rsocket]) => new APIClient(rsocket))
+  .then((rsocket) => new APIClient(rsocket))
 }
