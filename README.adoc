@@ -1,0 +1,23 @@
+= Bomberman Workshop
+
+== Credits
+
+The browser game engine is a reworked fork from https://gitlab2.cip.ifi.lmu.de/kafounis/lmu-projects/-/tree/b92a121b56028cc694827162791657d7e0694a4c/Bomberman%20-%20Multiplayer%20-%20JavaScript%20Project
+
+== Plan
+https://docs.google.com/document/d/1C9X0YAVkcr6XwkClcIb6iR9uPv7EG-oShJvHaqfmSh4/edit#
+
+== Running
+
+[source,bash]
+----
+# Start Server
+./gradlew bootRun
+# Start Web
+cd game-service/src/main/resources/static
+yarn install
+yarn watch
+----
+
+
+
