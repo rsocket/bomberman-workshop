@@ -39,18 +39,17 @@ public class Game {
             __ -> Sinks.many().multicast().<ByteBuffer>directBestEffort()));
     var initialGameStateAsBuffer = generateGameAsBuffer(players);
 
-    players.forEach(p -> {
-          final Flux<ByteBuffer> otherPlayersEvents = mergeInboundsExceptPlayer(playersOutboundsMap, p);
-          final Many<ByteBuffer> playerSink = playersOutboundsMap.get(p.id());
-          p
-              .play(
-                  otherPlayersEvents
-                      .startWith(initialGameStateAsBuffer))
-              .subscribe(gameEvent -> playerSink.emitNext(gameEvent, RETRY_NON_SERIALIZED),
-                  e -> playerSink.emitError(e, RETRY_NON_SERIALIZED),
-                  () -> playerSink.emitComplete(RETRY_NON_SERIALIZED));
-        }
-    );
+    for (xyz.bomberman.player.Player p : players) {
+      final Flux<ByteBuffer> otherPlayersEvents = mergeInboundsExceptPlayer(playersOutboundsMap, p);
+      final Many<ByteBuffer> playerSink = playersOutboundsMap.get(p.id());
+      p
+          .play(
+              otherPlayersEvents
+                  .startWith(initialGameStateAsBuffer))
+          .subscribe(gameEvent -> playerSink.emitNext(gameEvent, RETRY_NON_SERIALIZED),
+              e -> playerSink.emitError(e, RETRY_NON_SERIALIZED),
+              () -> playerSink.emitComplete(RETRY_NON_SERIALIZED));
+    }
   }
 
   private static Flux<ByteBuffer> mergeInboundsExceptPlayer(
