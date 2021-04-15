@@ -29,6 +29,12 @@ public class RoomsService {
     });
   }
 
+  public Flux<RoomEvent> rooms() {
+    return Flux.fromIterable(allRooms.values())
+        .map(room -> RoomEvent.of(room, ADDED))
+        .concatWith(roomUpdates.asFlux());
+  }
+
   public Mono<Void> join(String roomId, Player player) {
     return Mono.defer(() -> {
       var room = allRooms.get(roomId);
@@ -101,12 +107,5 @@ public class RoomsService {
             .subscribe();
       }
     });
-  }
-
-  public Flux<RoomEvent> list() {
-    return Flux.fromIterable(allRooms.values())
-        .map(room -> RoomEvent.of(room, ADDED))
-        .concatWith(roomUpdates.asFlux())
-        .log("rooms");
   }
 }

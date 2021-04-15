@@ -4,14 +4,9 @@ import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
@@ -26,7 +21,7 @@ public class RoomsController {
 
   @MessageMapping("")
   public Flux<ByteBuffer> list() {
-    return roomsService.list()
+    return roomsService.rooms()
         .map(re -> {
           final FlatBufferBuilder builder = new FlatBufferBuilder();
           RoomEvent.finishRoomEventBuffer(builder,

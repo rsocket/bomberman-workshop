@@ -88,7 +88,7 @@ public class DiscoveryService extends BaseSubscriber<DataBuffer> implements Disp
         .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
         .setupData(
             builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset()))
-        .tcp("localhost", 8081);
+        .websocket(URI.create("ws://discovery.bomberman.xyz"));
 
     this.rSocketRequester.route("discovery.services")
         .retrieveFlux(DataBuffer.class)

@@ -19,8 +19,7 @@ public class PlayersService {
   public Flux<PlayerEvent> players() {
     return Flux.fromIterable(allPlayers.values())
         .map(p -> PlayerEvent.of(p, CONNECTED))
-        .concatWith(playersUpdates.asFlux())
-        .log("players");
+        .concatWith(playersUpdates.asFlux());
   }
 
   public void register(Player player) {
