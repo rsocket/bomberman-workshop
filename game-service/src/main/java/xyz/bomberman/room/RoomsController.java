@@ -1,6 +1,5 @@
 package xyz.bomberman.room;
 
-import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -10,46 +9,18 @@ import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
-import xyz.bomberman.room.data.RoomEvent;
 
 @Controller
 @MessageMapping("game.rooms")
 @AllArgsConstructor
 public class RoomsController {
 
-  private final RoomsService roomsService;
+  private final RoomsRepository roomsRepository;
 
   @MessageMapping("")
-  public Flux<ByteBuffer> list() {
-    return roomsService.rooms()
-        .map(re -> {
-          final FlatBufferBuilder builder = new FlatBufferBuilder();
-          RoomEvent.finishRoomEventBuffer(builder,
-              RoomEvent.createRoomEvent(
-                  builder,
-                  (byte) re.getType().ordinal(),
-                  builder.createString(re.getRoom().id()),
-                  xyz.bomberman.player.data.Player.createPlayer(
-                      builder,
-                      builder.createString(re.getRoom().owner().id()),
-                      builder.createString(re.getRoom().owner().name())
-                  ),
-                  RoomEvent.createPlayersVector(
-                      builder,
-                      re.getRoom()
-                        .players()
-                        .stream()
-                        .mapToInt(p -> xyz.bomberman.player.data.Player.createPlayer(
-                            builder,
-                            builder.createString(p.id()),
-                            builder.createString(p.name())
-                        ))
-                        .toArray()
-                  )
-              )
-          );
-          return builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset());
-        });
+  public Flux<ByteBuffer> listAndListen() {
+    return roomsRepository.listAndListen()
+        .map(MessageMapper::mapToRoomEventBuffer);
   }
 
   @MessageMapping("create")
@@ -57,28 +28,28 @@ public class RoomsController {
     final var roomId = UUID.randomUUID().toString();
     final var room = new LocalRoom(roomId, player);
 
-    roomsService.add(room);
+    roomsRepository.add(room);
 
     return roomId;
   }
 
   @MessageMapping("{id}.join")
   public Mono<Void> join(@DestinationVariable("id") String roomId, Player player) {
-    return roomsService.join(roomId, player);
+    return roomsRepository.findAndJoin(roomId, player);
   }
 
   @MessageMapping("{id}.leave")
   public Mono<Void> leave(@DestinationVariable("id") String roomId, Player player) {
-    return roomsService.leave(roomId, player);
+    return roomsRepository.findAndLeave(roomId, player);
   }
 
   @MessageMapping("{id}.start")
   public void start(@DestinationVariable("id") String roomId, Player player) {
-    roomsService.start(roomId, player);
+    roomsRepository.findAndStart(roomId, player);
   }
 
   @MessageMapping("{id}.close")
   public void close(@DestinationVariable("id") String roomId) {
-    roomsService.remove(roomId);
+    roomsRepository.remove(roomId);
   }
 }

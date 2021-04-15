@@ -1,5 +1,6 @@
 package xyz.bomberman.player;
 
+import org.springframework.core.io.buffer.DataBuffer;
 import reactor.core.publisher.Flux;
 import xyz.bomberman.game.data.Game;
 import xyz.bomberman.game.data.GameEvent;
@@ -10,5 +11,5 @@ public interface Player {
 
   String name();
 
-  Flux<GameEvent> play(Game game, Flux<GameEvent> otherPlayersEvents);
+  Flux<DataBuffer> play(Flux<DataBuffer> outboundEvents);
 }

@@ -22,30 +22,30 @@ import reactor.util.retry.Retry;
 import xyz.bomberman.discovery.data.EventType;
 import xyz.bomberman.discovery.data.ServiceEvent;
 import xyz.bomberman.discovery.data.ServiceInfo;
-import xyz.bomberman.player.PlayersService;
+import xyz.bomberman.player.PlayersRepository;
 import xyz.bomberman.player.RemotePlayerController;
 import xyz.bomberman.player.RemotePlayersController;
 import xyz.bomberman.player.RemotePlayersListener;
 import xyz.bomberman.room.RemoteRoomsController;
 import xyz.bomberman.room.RemoteRoomsListener;
-import xyz.bomberman.room.RoomsService;
+import xyz.bomberman.room.RoomsRepository;
 
 @Service
 public class DiscoveryService extends BaseSubscriber<DataBuffer> implements DisposableBean {
 
   final RSocketRequester rSocketRequester;
-  final RoomsService roomsService;
-  final PlayersService playersService;
+  final RoomsRepository roomsRepository;
+  final PlayersRepository playersRepository;
 
   public DiscoveryService(
       RSocketRequester.Builder requesterBuilder,
       RSocketStrategies strategies,
-      RoomsService roomsService,
-      PlayersService playersService,
+      RoomsRepository roomsRepository,
+      PlayersRepository playersRepository,
       @Value("${server.port}") int port
   ) {
-    this.roomsService = roomsService;
-    this.playersService = playersService;
+    this.roomsRepository = roomsRepository;
+    this.playersRepository = playersRepository;
 
     final String address;
     try {
@@ -78,9 +78,9 @@ public class DiscoveryService extends BaseSubscriber<DataBuffer> implements Disp
         ))
         .rsocketConnector(
             connector -> connector.acceptor(RSocketMessageHandler
-                .responder(strategies, new RemoteRoomsController(roomsService, playersService),
-                    new RemotePlayersController(playersService),
-                    new RemotePlayerController(playersService)))
+                .responder(strategies, new RemoteRoomsController(roomsRepository, playersRepository),
+                    new RemotePlayersController(playersRepository),
+                    new RemotePlayerController(playersRepository)))
                 .reconnect(Retry.backoff(Long.MAX_VALUE, Duration.ofSeconds(15))))
         .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
         .setupData(
@@ -102,8 +102,8 @@ public class DiscoveryService extends BaseSubscriber<DataBuffer> implements Disp
       final ServiceInfo serviceInfo = serviceEvent.serviceInfo();
 
       // handle new service
-      new RemotePlayersListener(rSocketRequester, serviceInfo.id(), playersService);
-      new RemoteRoomsListener(rSocketRequester, serviceInfo.id(), playersService, roomsService);
+      new RemotePlayersListener(rSocketRequester, serviceInfo.id(), playersRepository);
+      new RemoteRoomsListener(rSocketRequester, serviceInfo.id(), playersRepository, roomsRepository);
     }
   }
 

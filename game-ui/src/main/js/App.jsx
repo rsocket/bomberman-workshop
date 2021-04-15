@@ -3,10 +3,7 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 import '@babel/polyfill'
-import React, {useEffect, useRef, useState} from 'react';
-import {connect} from "./RSocket.js"
-import Game from "./Game.js";
-import _ from 'lodash';
+import React from 'react';
 import './main.css';
 import {
     ITEM_EXTRA_LIFE,
@@ -19,9 +16,9 @@ import {
     WALL_GREY,
     BOMB,
     FIRE,
-} from "./constant.js";
+} from "./game/constant.js";
 import ReactDOM from "react-dom";
-import {Rooms} from "./Rooms.jsx";
+import {Rooms} from "./rooms/Rooms.jsx";
 
 
 export class AssetLoader {

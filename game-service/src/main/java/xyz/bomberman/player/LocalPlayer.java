@@ -1,9 +1,8 @@
 package xyz.bomberman.player;
 
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.buffer.DataBuffer;
 import reactor.core.publisher.Flux;
-import xyz.bomberman.game.data.Game;
-import xyz.bomberman.game.data.GameEvent;
 
 @AllArgsConstructor
 public class LocalPlayer implements Player {
@@ -23,7 +22,7 @@ public class LocalPlayer implements Player {
   }
 
   @Override
-  public Flux<GameEvent> play(Game game, Flux<GameEvent> otherPlayersEvents) {
-    return localPlayerClient.play(game, otherPlayersEvents);
+  public Flux<DataBuffer> play(Flux<DataBuffer> outboundEvents) {
+    return localPlayerClient.play(outboundEvents);
   }
 }

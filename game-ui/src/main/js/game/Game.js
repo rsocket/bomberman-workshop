@@ -19,8 +19,8 @@ import {
 import {Flowable} from "rsocket-flowable";
 import {flatbuffers} from "flatbuffers";
 
-import {xyz as gameXyz} from "./flatbuffers/Game_generated";
-import {xyz} from "./flatbuffers/GameEvent_generated";
+import {xyz as gameXyz} from "generated/flatbuffers/Game_generated";
+import {xyz} from "generated/flatbuffers/GameEvent_generated";
 import {encodeCompositeMetadata, encodeRoute, MESSAGE_RSOCKET_ROUTING} from "rsocket-core";
 
 const EventType = xyz.bomberman.game.data.EventType;

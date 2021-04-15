@@ -2,19 +2,23 @@ version: '2.1'
 
 services:
   prometheus:
-    image: prom/prometheus:v2.25.2
-    build:
-      network: host
+    image: docker.io/prom/prometheus:v2.25.2
     container_name: prometheus
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
 
+  prometheus-rosket-proxy:
+    image: docker.io/bitnami/prometheus-rsocket-proxy:latest
+    container_name: prometheus-rsocket-proxy
+    ports:
+      - 7001:7001
+      - 8081:8081
+      - 8080:8686
+
   grafana:
-    build:
-      network: host
-    image: grafana/grafana:7.4.5
+    image: docker.io/grafana/grafana:7.4.5
     container_name: grafana
     volumes:
       - ./datasources:/etc/grafana/provisioning/datasources

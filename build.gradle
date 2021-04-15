@@ -3,7 +3,7 @@ plugins {
     id "io.spring.dependency-management"  version "1.0.11.RELEASE"  apply false
     id "io.netifi.flatbuffers" version "1.0.7" apply false
     id "com.github.node-gradle.node" version "3.0.1" apply false
-    id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
+    id "com.github.johnrengelman.shadow" version "6.1.0" apply false
 }
 
 group = "xyz.bomberman"
@@ -15,8 +15,16 @@ repositories {
 }
 
 subprojects {
+    apply plugin: "io.spring.dependency-management"
+
     repositories {
         mavenCentral()
         maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+    }
+
+    dependencyManagement {
+        dependencies {
+            dependency("io.micrometer.prometheus:prometheus-rsocket-spring:1.3.0")
+        }
     }
 }

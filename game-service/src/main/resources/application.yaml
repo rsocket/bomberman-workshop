@@ -12,5 +12,3 @@ spring:
     resources:
       chain:
         cache: false
-      static-locations:
-        - 'classpath:/static/'

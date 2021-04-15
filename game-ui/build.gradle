@@ -34,7 +34,7 @@ processResources {
 task createFlatBuffers(type: FlatBuffers, dependsOn: ['processResources']) {
     language = 'js'
     inputDir = file("$buildDir/resources/main")
-    outputDir = file("$projectDir/src/main/js/flatbuffers")
+    outputDir = file("$buildDir/generated/sources/flatbuffers/js/main")
     extraArgs = "--gen-mutable --es6-js-export"
 }
 

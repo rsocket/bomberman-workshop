@@ -13,29 +13,29 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import xyz.bomberman.player.Player;
-import xyz.bomberman.player.PlayersService;
+import xyz.bomberman.player.PlayersRepository;
 
 @Service
-public class RoomsService {
+public class RoomsRepository {
 
   final ConcurrentMap<String, Room> allRooms = new ConcurrentHashMap<>();
   final Sinks.Many<RoomEvent> roomUpdates = Sinks.many().multicast().directBestEffort();
 
-  public RoomsService(PlayersService playersService) {
-    playersService.players().subscribe(pe -> {
+  public RoomsRepository(PlayersRepository playersRepository) {
+    playersRepository.listAndListen().subscribe(pe -> {
       if (pe.getType() == DISCONNECTED) {
         remove(pe.getPlayer());
       }
     });
   }
 
-  public Flux<RoomEvent> rooms() {
+  public Flux<RoomEvent> listAndListen() {
     return Flux.fromIterable(allRooms.values())
         .map(room -> RoomEvent.of(room, ADDED))
         .concatWith(roomUpdates.asFlux());
   }
 
-  public Mono<Void> join(String roomId, Player player) {
+  public Mono<Void> findAndJoin(String roomId, Player player) {
     return Mono.defer(() -> {
       var room = allRooms.get(roomId);
 
@@ -49,7 +49,7 @@ public class RoomsService {
     });
   }
 
-  public Mono<Void> leave(String roomId, Player player) {
+  public Mono<Void> findAndLeave(String roomId, Player player) {
     return Mono.defer(() -> {
       var room = allRooms.get(roomId);
 
@@ -63,7 +63,7 @@ public class RoomsService {
     });
   }
 
-  public void start(String roomId, Player player) {
+  public void findAndStart(String roomId, Player player) {
     var room = allRooms.remove(roomId);
 
     if (room != null) {

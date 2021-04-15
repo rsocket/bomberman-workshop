@@ -11,12 +11,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 @Service
-public class PlayersService {
+public class PlayersRepository {
 
   final ConcurrentMap<String, Player> allPlayers = new ConcurrentHashMap<>();
   final Sinks.Many<PlayerEvent> playersUpdates = Sinks.many().multicast().directBestEffort();
 
-  public Flux<PlayerEvent> players() {
+  public Flux<PlayerEvent> listAndListen() {
     return Flux.fromIterable(allPlayers.values())
         .map(p -> PlayerEvent.of(p, CONNECTED))
         .concatWith(playersUpdates.asFlux());

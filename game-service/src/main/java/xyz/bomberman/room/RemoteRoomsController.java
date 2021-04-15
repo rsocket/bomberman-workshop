@@ -1,6 +1,5 @@
 package xyz.bomberman.room;
 
-import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -9,49 +8,20 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import xyz.bomberman.player.Player;
-import xyz.bomberman.player.PlayersService;
-import xyz.bomberman.room.data.RoomEvent;
+import xyz.bomberman.player.PlayersRepository;
 
 @AllArgsConstructor
 @MessageMapping("game.rooms")
 public class RemoteRoomsController {
 
-  private final RoomsService roomsService;
-  private final PlayersService playersService;
+  private final RoomsRepository roomsRepository;
+  private final PlayersRepository playersRepository;
 
   @MessageMapping("")
   public Flux<ByteBuffer> list() {
-    return roomsService.rooms()
+    return roomsRepository.listAndListen()
         .filter(roomEvent -> roomEvent.getRoom().getClass().equals(LocalRoom.class))
-        .map(re -> {
-          final FlatBufferBuilder builder = new FlatBufferBuilder();
-          xyz.bomberman.room.data.RoomEvent
-              .finishRoomEventBuffer(builder, xyz.bomberman.room.data.RoomEvent
-                  .createRoomEvent(
-                      builder,
-                      (byte) re.getType().ordinal(),
-                      builder.createString(re.getRoom().id()),
-                      xyz.bomberman.player.data.Player.createPlayer(
-                          builder,
-                          builder.createString(re.getRoom().owner().id()),
-                          builder.createString(re.getRoom().owner().name())
-                      ),
-                      RoomEvent.createPlayersVector(
-                          builder,
-                          re.getRoom()
-                              .players()
-                              .stream()
-                              .mapToInt(p -> xyz.bomberman.player.data.Player.createPlayer(
-                                  builder,
-                                  builder.createString(p.id()),
-                                  builder.createString(p.name())
-                              ))
-                              .toArray()
-                      )
-                  )
-              );
-          return builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset());
-        });
+        .map(MessageMapper::mapToRoomEventBuffer);
   }
 
   @MessageMapping("{id}.join")
@@ -59,8 +29,8 @@ public class RemoteRoomsController {
       @DestinationVariable("id") String roomId,
       @Header("bomberman/player.id") String playerId
   ) {
-    final Player player = playersService.find(playerId);
-    return roomsService.join(roomId, player);
+    final Player player = playersRepository.find(playerId);
+    return roomsRepository.findAndJoin(roomId, player);
   }
 
   @MessageMapping("{id}.leave")
@@ -68,7 +38,7 @@ public class RemoteRoomsController {
       @DestinationVariable("id") String roomId,
       @Header("bomberman/player.id") String playerId
   ) {
-    final Player player = playersService.find(playerId);
-    return roomsService.leave(roomId, player);
+    final Player player = playersRepository.find(playerId);
+    return roomsRepository.findAndLeave(roomId, player);
   }
 }
