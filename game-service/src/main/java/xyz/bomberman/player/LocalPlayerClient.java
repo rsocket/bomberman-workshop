@@ -1,7 +1,7 @@
 package xyz.bomberman.player;
 
+import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import reactor.core.publisher.Flux;
 
@@ -10,9 +10,9 @@ class LocalPlayerClient {
 
   final RSocketRequester requester;
 
-  Flux<DataBuffer> play(Flux<DataBuffer> outboundEvents) {
+  Flux<ByteBuffer> play(Flux<ByteBuffer> outboundEvents) {
     return requester.route("game.play")
         .data(outboundEvents)
-        .retrieveFlux(DataBuffer.class);
+        .retrieveFlux(ByteBuffer.class);
   }
 }

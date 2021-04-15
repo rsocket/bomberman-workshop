@@ -1,9 +1,7 @@
 package xyz.bomberman.player;
 
-import org.springframework.core.io.buffer.DataBuffer;
+import java.nio.ByteBuffer;
 import reactor.core.publisher.Flux;
-import xyz.bomberman.game.data.Game;
-import xyz.bomberman.game.data.GameEvent;
 
 public interface Player {
 
@@ -11,5 +9,5 @@ public interface Player {
 
   String name();
 
-  Flux<DataBuffer> play(Flux<DataBuffer> outboundEvents);
+  Flux<ByteBuffer> play(Flux<ByteBuffer> outboundEvents);
 }

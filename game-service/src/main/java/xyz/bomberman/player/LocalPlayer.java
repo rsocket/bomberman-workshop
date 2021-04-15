@@ -1,7 +1,7 @@
 package xyz.bomberman.player;
 
+import java.nio.ByteBuffer;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.buffer.DataBuffer;
 import reactor.core.publisher.Flux;
 
 @AllArgsConstructor
@@ -22,7 +22,7 @@ public class LocalPlayer implements Player {
   }
 
   @Override
-  public Flux<DataBuffer> play(Flux<DataBuffer> outboundEvents) {
+  public Flux<ByteBuffer> play(Flux<ByteBuffer> outboundEvents) {
     return localPlayerClient.play(outboundEvents);
   }
 }

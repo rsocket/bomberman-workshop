@@ -3,6 +3,7 @@ package xyz.bomberman.game;
 import static xyz.bomberman.utils.SinksSupport.RETRY_NON_SERIALIZED;
 
 import com.google.flatbuffers.FlatBufferBuilder;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,9 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.core.publisher.Sinks.Many;
@@ -35,35 +33,33 @@ public class Game {
   private static final int AMOUNT_WALLS = 50;
   private static final int HEALTH = 2;
 
-  final Map<String, Many<DataBuffer>> playersOutbound;
+  final Map<String, Many<ByteBuffer>> playersOutbound;
   final int toRetainCnt;
 
   public Game(
-      Map<String, Many<DataBuffer>> playersOutbound
+      Map<String, Many<ByteBuffer>> playersOutbound
   ) {
     this.playersOutbound = playersOutbound;
     this.toRetainCnt = playersOutbound.size() - 2;
   }
 
-  void broadcast(String senderPlayerId, DataBuffer gameEventBuffer) {
+  void broadcast(String senderPlayerId, ByteBuffer gameEventBuffer) {
     for (var entry : playersOutbound.entrySet()) {
-      if (entry.getKey().equals(senderPlayerId)) {
-        entry.getValue().emitNext(gameEventBuffer
-                .retainedSlice(gameEventBuffer.readPosition(), gameEventBuffer.readableByteCount()),
-            RETRY_NON_SERIALIZED);
+      final String recipientId = entry.getKey();
+      if (recipientId.equals(senderPlayerId)) {
+        final Many<ByteBuffer> sink = entry.getValue();
+        sink.emitNext(gameEventBuffer, RETRY_NON_SERIALIZED);
       }
     }
-
-    DataBufferUtils.release(gameEventBuffer);
   }
 
   public static void create(Set<xyz.bomberman.player.Player> players) {
     var playersOutboundsMap = players.stream()
         .collect(Collectors.toMap(xyz.bomberman.player.Player::id,
-            __ -> Sinks.many().multicast().<DataBuffer>directBestEffort()));
+            __ -> Sinks.many().multicast().<ByteBuffer>directBestEffort()));
     var game = new Game(playersOutboundsMap);
 
-    final DataBuffer initialGameStateAsBuffer = generateGameAsBuffer(players);
+    final ByteBuffer initialGameStateAsBuffer = generateGameAsBuffer(players);
 
     players.forEach(p -> p
         .play(
@@ -73,14 +69,14 @@ public class Game {
     );
   }
 
-  private static Flux<DataBuffer> mergeInboundsExceptPlayer(
-      Map<String, Many<DataBuffer>> playersOutboundsMap, xyz.bomberman.player.Player p) {
+  private static Flux<ByteBuffer> mergeInboundsExceptPlayer(
+      Map<String, Many<ByteBuffer>> playersOutboundsMap, xyz.bomberman.player.Player p) {
     return Flux.merge(
         playersOutboundsMap.entrySet().stream().filter(e -> !e.getKey().equals(p.id()))
             .map(e -> e.getValue().asFlux()).collect(Collectors.toList()));
   }
 
-  private static DataBuffer generateGameAsBuffer(Set<xyz.bomberman.player.Player> players) {
+  private static ByteBuffer generateGameAsBuffer(Set<xyz.bomberman.player.Player> players) {
     final FlatBufferBuilder builder = new FlatBufferBuilder();
     xyz.bomberman.game.data.Game.finishGameBuffer(
         builder,
@@ -101,8 +97,7 @@ public class Game {
         )
     );
 
-    return DefaultDataBufferFactory.sharedInstance
-        .wrap(builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset()));
+    return builder.dataBuffer().position(builder.dataBuffer().capacity() - builder.offset());
   }
 
   private static int[] generateRandomWalls(FlatBufferBuilder builder) {
