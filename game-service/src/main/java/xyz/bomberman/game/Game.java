@@ -33,39 +33,23 @@ public class Game {
   private static final int AMOUNT_WALLS = 50;
   private static final int HEALTH = 2;
 
-  final Map<String, Many<ByteBuffer>> playersOutbound;
-  final int toRetainCnt;
-
-  public Game(
-      Map<String, Many<ByteBuffer>> playersOutbound
-  ) {
-    this.playersOutbound = playersOutbound;
-    this.toRetainCnt = playersOutbound.size() - 2;
-  }
-
-  void broadcast(String senderPlayerId, ByteBuffer gameEventBuffer) {
-    for (var entry : playersOutbound.entrySet()) {
-      final String recipientId = entry.getKey();
-      if (recipientId.equals(senderPlayerId)) {
-        final Many<ByteBuffer> sink = entry.getValue();
-        sink.emitNext(gameEventBuffer, RETRY_NON_SERIALIZED);
-      }
-    }
-  }
-
   public static void create(Set<xyz.bomberman.player.Player> players) {
     var playersOutboundsMap = players.stream()
         .collect(Collectors.toMap(xyz.bomberman.player.Player::id,
             __ -> Sinks.many().multicast().<ByteBuffer>directBestEffort()));
-    var game = new Game(playersOutboundsMap);
+    var initialGameStateAsBuffer = generateGameAsBuffer(players);
 
-    final ByteBuffer initialGameStateAsBuffer = generateGameAsBuffer(players);
-
-    players.forEach(p -> p
-        .play(
-            mergeInboundsExceptPlayer(playersOutboundsMap, p)
-                .startWith(initialGameStateAsBuffer))
-        .subscribe(gameEvent -> game.broadcast(p.id(), gameEvent))
+    players.forEach(p -> {
+          final Flux<ByteBuffer> otherPlayersEvents = mergeInboundsExceptPlayer(playersOutboundsMap, p);
+          final Many<ByteBuffer> playerSink = playersOutboundsMap.get(p.id());
+          p
+              .play(
+                  otherPlayersEvents
+                      .startWith(initialGameStateAsBuffer))
+              .subscribe(gameEvent -> playerSink.emitNext(gameEvent, RETRY_NON_SERIALIZED),
+                  e -> playerSink.emitError(e, RETRY_NON_SERIALIZED),
+                  () -> playerSink.emitComplete(RETRY_NON_SERIALIZED));
+        }
     );
   }
 
