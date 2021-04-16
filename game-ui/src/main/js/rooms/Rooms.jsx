@@ -26,9 +26,9 @@ export function Rooms() {
 
         client.current = apiClient
 
-      apiClient.login(userName)
-               .then(setUserId)
-               .then(apiClient.rooms.listAndListen(handleRoomEvent))
+        apiClient.login(userName)
+            .then(setUserId)
+            .then(apiClient.rooms.listAndListen(handleRoomEvent))
     }, []);
 
     function handleRoomEvent({eventType, room}) {

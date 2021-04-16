@@ -22,7 +22,17 @@ export function connect(responder) {
             metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
         },
         responder: responder,
-        transport: new RSocketWebSocketClient({url : urlFromLocation()}, BufferEncoders),
+        transport: new RSocketWebSocketClient({url: urlFromLocation()}, BufferEncoders),
     });
-    return socketClient.connect();
+    return new Promise((resolve, reject) => {
+        socketClient.connect()
+            .subscribe({
+                onComplete(r) {
+                    resolve(r);
+                },
+                onError(e) {
+                    reject(e);
+                }
+            })
+    });
 }
