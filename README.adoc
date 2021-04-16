@@ -387,6 +387,83 @@ Using these techniques and various interceptors, we can get a full view of an RS
 
 == Part 3. The Mesh
 
+How cool would it be if our servers can connect to each creating a truly distributed game mesh? With RSocket, these dreams can become a reality! However, to connect to each other, first two servers need to learn about, to discover, each other. The solution for this problem can be a discovery service, which every game server can connect to, announce its presence, and listen to the updates from every other server.
+
+This application could be a plain java app listening on a port. Thanks to RSocket, it could also use any possible transport whether it's TCP or WebSocket. For this example, let's use WebSockets.
+
+[source,java]
+----
+public class DiscoveryApplication {
+  public static void main(String[] args) {
+    var port = Objects.requireNonNull(System.getenv("PORT"), "8081");
+    var server = RSocketServer.create()
+        .payloadDecoder(PayloadDecoder.ZERO_COPY)
+        .acceptor(new DiscoverySocketAcceptor(new ServiceRegistry()))
+        .bindNow(WebsocketServerTransport.create(Integer.parseInt(port)));
+
+    System.out.println("started on " + server.address());
+    server.onClose().block();
+  }
+}
+----
+
+The accepter that accepts the incoming requests needs to store the information about the connecting clients, in particular we need to store their `sendingRSocket` so that we can proxy the connections. Once the client disconnects for whatever reason, we need to remember to deregister.
+
+[source,java]
+----
+class DiscoverySocketAcceptor implements SocketAcceptor {
+  @Override
+  public Mono<RSocket> accept(ConnectionSetupPayload setup, RSocket sendingSocket) {
+    var flatServiceInfo = ServiceInfo.getRootAsServiceInfo(setup.getData());
+    var serviceInfo = new ServiceInfo(flatServiceInfo.id(), flatServiceInfo.uri(), sendingSocket);
+
+    return Mono.just(new DiscoveryRSocketHandler(serviceRegistry, serviceInfo))
+        .doAfterTerminate(() -> {
+          serviceRegistry.register(serviceInfo);
+          sendingSocket.onClose()
+              .doFinally(__ -> serviceRegistry.unregister(serviceInfo))
+              .subscribe();
+        });
+  }
+}
+----
+
+Now all that's left is to implement the handler of the incoming requests. For each incoming request, we'll need to understand the destination, and simply proxy the request to the desired destination. For example, let's take a look at the `requestResponse` interaction type.
+
+[source,java]
+----
+class DiscoveryRSocketHandler implements RSocket {
+  // ...
+  @Override
+  public Mono<Payload> requestResponse(Payload payload) {
+    // First, extract the destination
+    var destinationIdByteBuf = CompositeMetadataUtils
+        .extract(payload.metadata(), DESTINATION_ID_MIMETYPE);
+
+    if (destinationIdByteBuf != null) {
+      // Now, find the destination service from our service registry
+      var destinationId = destinationIdByteBuf.toString(CharsetUtil.UTF_8);
+      var destinationServiceInfo = serviceRegistry.find(destinationId);
+
+      // Once, the destination is found, retrieve its requester and proxy the request
+      if (destinationServiceInfo != null) {
+        return destinationServiceInfo.getRequester().requestResponse(payload);
+      }
+
+      // If not found, handle the errors
+      payload.release();
+      return Mono
+          .error(new IllegalStateException("Service [" + destinationId + "] is not registered"));
+    }
+    payload.release();
+    return Mono
+        .error(new IllegalStateException("Destination Id is missed"));
+  }
+  // ...
+}
+----
+
+
 == Credits
 
 The browser game engine is a reworked fork from https://gitlab2.cip.ifi.lmu.de/kafounis/lmu-projects/-/tree/b92a121b56028cc694827162791657d7e0694a4c/Bomberman%20-%20Multiplayer%20-%20JavaScript%20Project
