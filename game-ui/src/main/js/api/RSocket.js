@@ -12,7 +12,7 @@ function urlFromLocation() {
     return `${isSecure ? 'wss' : 'ws'}://${hostname}${port}/rsocket`;
 }
 
-export function connect(responder) {
+export async function connect(responder) {
     console.log("connecting");
     const socketClient = new RSocketClient({
         setup: {
@@ -22,17 +22,7 @@ export function connect(responder) {
             metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
         },
         responder: responder,
-        transport: new RSocketWebSocketClient({url: urlFromLocation()}, BufferEncoders),
+        transport: new RSocketWebSocketClient({url : urlFromLocation()}, BufferEncoders),
     });
-    return new Promise((resolve, reject) => {
-        socketClient.connect()
-            .subscribe({
-                onComplete(r) {
-                    resolve(r);
-                },
-                onError(e) {
-                    reject(e);
-                }
-            })
-    });
+    return await socketClient.connect();
 }

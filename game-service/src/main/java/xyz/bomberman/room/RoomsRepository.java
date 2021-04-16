@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 import xyz.bomberman.player.Player;
 import xyz.bomberman.player.PlayersRepository;
@@ -35,32 +34,30 @@ public class RoomsRepository {
         .concatWith(roomUpdates.asFlux());
   }
 
-  public Mono<Void> findAndJoin(String roomId, Player player) {
-    return Mono.defer(() -> {
-      var room = allRooms.get(roomId);
+  public void findAndJoin(String roomId, Player player) {
 
-      if (room != null) {
-        return room.join(player)
-            .doOnSuccess(
-                (__) -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED));
-      }
+    var room = allRooms.get(roomId);
 
-      return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
-    });
+    if (room != null) {
+      room.join(player);
+
+      roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED);
+    }
+
+    throw new IllegalStateException("Room " + roomId + " does not exist");
+
   }
 
-  public Mono<Void> findAndLeave(String roomId, Player player) {
-    return Mono.defer(() -> {
-      var room = allRooms.get(roomId);
+  public void findAndLeave(String roomId, Player player) {
+    var room = allRooms.get(roomId);
 
-      if (room != null) {
-        return room.leave(player)
-            .doOnSuccess((__) -> roomUpdates
-                .emitNext(RoomEvent.of(allRooms.get(roomId), UPDATED), RETRY_NON_SERIALIZED));
-      }
+    if (room != null) {
+      room.leave(player);
+      roomUpdates
+          .emitNext(RoomEvent.of(allRooms.get(roomId), UPDATED), RETRY_NON_SERIALIZED);
+    }
 
-      return Mono.error(new IllegalStateException("Room " + roomId + " does not exist"));
-    });
+    throw new IllegalStateException("Room " + roomId + " does not exist");
   }
 
   public void findAndStart(String roomId, Player player) {
@@ -101,10 +98,8 @@ public class RoomsRepository {
         allRooms.remove(room.id());
         roomUpdates.emitNext(RoomEvent.of(room, REMOVED), RETRY_NON_SERIALIZED);
       } else if (room.players().stream().anyMatch(p -> p.id().equals(player.id()))) {
-        room.leave(player)
-            .doOnSuccess(
-                __ -> roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED))
-            .subscribe();
+        room.leave(player);
+        roomUpdates.emitNext(RoomEvent.of(room, UPDATED), RETRY_NON_SERIALIZED);
       }
     });
   }

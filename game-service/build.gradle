@@ -16,7 +16,6 @@ configurations {
 dependencies {
 
     flatbuf(project(":game-service-idl"))
-    flatbuf(project(":discovery-service-idl"))
 
     implementation(project(":game-ui"))
 

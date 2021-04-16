@@ -12,91 +12,25 @@ export default class APIClient {
   }
 
   login(userName) {
-    return new Promise((resolve, reject) =>
-        this.rsocket.requestResponse({
-          metadata: encodeCompositeMetadata([
-            [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.players.login')],
-          ]),
-          data: Buffer.from(userName)
-        }).subscribe({
-          onComplete: (payload) => {
-            resolve(payload.data.toString());
-          },
-          onError: e => reject(e)
-        })
-    );
+    return Promise.reject("not implemented")
   }
 
   get rooms() {
     const rsocket = this.rsocket;
     return {
       listAndListen: (roomsHandler) => {
-        return new Promise((resolve, reject) =>
-            rsocket.requestStream({
-              metadata: encodeCompositeMetadata([
-                [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms')],
-              ]),
-            }).subscribe({
-              onSubscribe(s) {
-                s.request(2147483642)
-              },
-              onNext(eventBuf) {
-                roomsHandler(extractRoom(eventBuf));
-              },
-              onError(err) {
-                reject(err)
-              },
-              onComplete() {
-                resolve()
-              }
-            })
-        );
+        return Promise.reject("not implemented")
       },
 
-      create: () => new Promise((resolve, reject) =>
-          rsocket.requestResponse({
-            metadata: encodeCompositeMetadata([
-              [MESSAGE_RSOCKET_ROUTING, encodeRoute('game.rooms.create')],
-            ]),
-          })
-          .then(payload => resolve(payload.data.toString()), reject)
-      ),
+      create: () => Promise.reject("not implemented"),
 
-      join: (roomId) => new Promise((resolve, reject) =>
-          rsocket.requestResponse({
-            metadata: encodeCompositeMetadata([
-              [MESSAGE_RSOCKET_ROUTING,
-                encodeRoute(`game.rooms.${roomId}.join`)],
-            ]),
-          })
-          .then(resolve, reject)
-      ),
+      join: (roomId) => Promise.reject("not implemented"),
 
-      leave: (roomId) => new Promise((resolve, reject) =>
-          rsocket.requestResponse({
-            metadata: encodeCompositeMetadata([
-              [MESSAGE_RSOCKET_ROUTING,
-                encodeRoute(`game.rooms.${roomId}.leave`)],
-            ]),
-          })
-          .then(resolve, reject)
-      ),
+      leave: (roomId) => Promise.reject("not implemented"),
 
-      start: (roomId) => rsocket.fireAndForget({
-        metadata: encodeCompositeMetadata([
-          [MESSAGE_RSOCKET_ROUTING, encodeRoute(`game.rooms.${roomId}.start`)],
-        ]),
-      }),
+      start: (roomId) => {},
 
-      close: (roomId) => new Promise((resolve, reject) =>
-          rsocket.requestResponse({
-            metadata: encodeCompositeMetadata([
-              [MESSAGE_RSOCKET_ROUTING,
-                encodeRoute(`game.rooms.${roomId}.close`)],
-            ]),
-          })
-          .then(resolve, reject)
-      ),
+      close: (roomId) => {},
     }
   }
 

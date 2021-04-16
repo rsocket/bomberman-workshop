@@ -1,13 +1,18 @@
 package xyz.bomberman.player;
 
-import java.nio.ByteBuffer;
-import reactor.core.publisher.Flux;
+import lombok.AllArgsConstructor;
 
-public interface Player {
+@AllArgsConstructor
+public class Player {
 
-  String id();
+  final String id;
+  final String name;
 
-  String name();
+  public String id() {
+    return id;
+  }
 
-  Flux<ByteBuffer> play(Flux<ByteBuffer> outboundEvents);
+  public String name() {
+    return name;
+  }
 }

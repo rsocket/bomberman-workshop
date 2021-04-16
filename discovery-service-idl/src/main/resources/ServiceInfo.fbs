@@ -1,8 +1,0 @@
-namespace xyz.bomberman.discovery.data;
-
-table ServiceInfo {
-  id: string;
-  uri: string;
-}
-
-root_type ServiceInfo;

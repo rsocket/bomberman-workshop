@@ -1,14 +1,2 @@
 server:
     port: ${PORT:9000}
-logging:
-  level:
-    root: DEBUG
-spring:
-  rsocket:
-    server:
-      mapping-path: /rsocket
-      transport: websocket
-  web:
-    resources:
-      chain:
-        cache: false

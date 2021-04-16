@@ -1,1 +1,0 @@
-web: java $JAVA_OPTS -cp discovery-service/build/libs/discovery-service-all.jar xyz.bomberman.discovery.DiscoveryApplication

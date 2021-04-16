@@ -1,7 +1,5 @@
 package xyz.bomberman.game;
 
-import static xyz.bomberman.utils.SinksSupport.RETRY_NON_SERIALIZED;
-
 import com.google.flatbuffers.FlatBufferBuilder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -18,38 +16,13 @@ import xyz.bomberman.game.data.Player;
 import xyz.bomberman.game.data.Position;
 import xyz.bomberman.game.data.Wall;
 
-public class Game {
-
-  private static final int GAME_WIDTH = 13;
-  private static final int GAME_HEIGHT = 13;
-
-  private static final int[][] INITIAL_POSITIONS = {
-      {0, 0}, {GAME_WIDTH - 1, 0},
-      {0, GAME_HEIGHT - 1}, {GAME_WIDTH - 1, GAME_HEIGHT - 1}
-  };
-
-  private static final int AMOUNT_RANDOM_WALLS = 55;
-  private static final int AMOUNT_BOMBS = 30;
-  private static final int AMOUNT_WALLS = 50;
-  private static final int HEALTH = 2;
+public class GameClient {
 
   public static void create(Set<xyz.bomberman.player.Player> players) {
     var playersOutboundsMap = players.stream()
         .collect(Collectors.toMap(xyz.bomberman.player.Player::id,
             __ -> Sinks.many().multicast().<ByteBuffer>directBestEffort()));
     var initialGameStateAsBuffer = generateGameAsBuffer(players);
-
-    for (xyz.bomberman.player.Player p : players) {
-      final Flux<ByteBuffer> otherPlayersEvents = mergeInboundsExceptPlayer(playersOutboundsMap, p);
-      final Many<ByteBuffer> playerSink = playersOutboundsMap.get(p.id());
-      p
-          .play(
-              otherPlayersEvents
-                  .startWith(initialGameStateAsBuffer))
-          .subscribe(gameEvent -> playerSink.emitNext(gameEvent, RETRY_NON_SERIALIZED),
-              e -> playerSink.emitError(e, RETRY_NON_SERIALIZED),
-              () -> playerSink.emitComplete(RETRY_NON_SERIALIZED));
-    }
   }
 
   private static Flux<ByteBuffer> mergeInboundsExceptPlayer(
@@ -166,7 +139,7 @@ public class Game {
     for (var user : users) {
       var position = INITIAL_POSITIONS[i];
       var idOffset = builder.createString(user.name());
-      var directionOffset = builder.createString(Directions.ALL.get(i));
+      var directionOffset = builder.createString(ALL.get(i));
 
       Player.startPlayer(builder);
       Player.addId(builder, idOffset);
@@ -184,4 +157,22 @@ public class Game {
     }
     return playersOffsets;
   }
+
+  private static final String EAST = "east";
+  private static final String SOUTH = "south";
+  private static final String WEST = "west";
+  private static final String NORTH = "north";
+  private static final List<String> ALL = List.of(EAST, SOUTH, WEST, NORTH);
+  private static final int GAME_WIDTH = 13;
+  private static final int GAME_HEIGHT = 13;
+
+  private static final int[][] INITIAL_POSITIONS = {
+      {0, 0}, {GAME_WIDTH - 1, 0},
+      {0, GAME_HEIGHT - 1}, {GAME_WIDTH - 1, GAME_HEIGHT - 1}
+  };
+
+  private static final int AMOUNT_RANDOM_WALLS = 55;
+  private static final int AMOUNT_BOMBS = 30;
+  private static final int AMOUNT_WALLS = 50;
+  private static final int HEALTH = 2;
 }
