@@ -463,6 +463,179 @@ class DiscoveryRSocketHandler implements RSocket {
 }
 ----
 
+Now that Discovery Service is ready to send out events, our game servers need to listen to them. Let's start listening by creating a separate spring bean which is also a subscriber.
+
+[source,java]
+----
+@Service
+public class DiscoveryService extends BaseSubscriber<DataBuffer> implements DisposableBean {
+  // ...
+  public DiscoveryService(
+      requester.Builder requesterBuilder,
+      RSocketStrategies strategies,
+      RoomsRepository roomsRepository,
+      PlayersRepository playersRepository,
+      @Value("${server.port}") int port
+  ) {
+    // ...
+    this.requester = requesterBuilder
+        // extracting metadata to make it injectable inside controllers them with @Header
+        .rsocketStrategies(b -> b.metadataExtractorRegistry(mer -> {
+              mer.metadataToExtract(DESTINATION_ID_MIMETYPE, String.class,
+                  DESTINATION_ID_MIMETYPE.toString());
+              mer.metadataToExtract(PLAYER_ID_MIMETYPE, String.class,
+                  PLAYER_ID_MIMETYPE.toString());
+            }
+        ))
+        // now, specify the destination - the set of controllers
+        .rsocketConnector(
+            connector -> connector.acceptor(RSocketMessageHandler
+                .responder(strategies,
+                    new RemoteRoomsController(roomsRepository, playersRepository),
+                    new RemotePlayersController(playersRepository),
+                    new RemotePlayerController(playersRepository)))
+                .reconnect(Retry.backoff(Long.MAX_VALUE, Duration.ofSeconds(15))))
+        // talking binary
+        .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
+        // how we anounce ourselves
+        .setupData(buildServiceInfo())
+        // and finally the URL of the discovery service. Can either be shared or localhost
+        .websocket(URI.create("ws://discovery.bomberman.xyz"));
+    this.requester.route("discovery.services")
+        .retrieveFlux(DataBuffer.class)
+        .subscribe(this);
+  }
+
+  @Override
+  protected void hookOnNext(DataBuffer rawServiceEvent) {
+    var serviceEvent = ServiceEvent.getRootAsServiceEvent(rawServiceEvent.asByteBuffer());
+    if (serviceEvent.type() == EventType.Connected) {
+      var session = serviceEvent.serviceInfo();
+      // handle new service
+      new RemotePlayersListener(requester, session.id(), playersRepository);
+      new RemoteRoomsListener(requester, session.id(), playersRepository, roomsRepository);
+    }
+  }
+  // ...
+}
+----
+
+Now, we can start listening to the incoming players.
+
+[source,java]
+----
+public class RemotePlayersListener extends BaseSubscriber<DataBuffer> {
+
+  final RSocketRequester rSocketRequester;
+  final String serviceId;
+  final PlayersRepository playersRepository;
+  final RemotePlayerClient remotePlayerClient;
+  final HashMap<String, RemotePlayer> remotePlayers = new HashMap<>();
+
+  public RemotePlayersListener(
+      RSocketRequester rSocketRequester,
+      String serviceId,
+      PlayersRepository playersRepository) {
+    // ...
+    rSocketRequester.route("game.players")
+        .metadata(serviceId, DESTINATION_ID_MIMETYPE)
+        .retrieveFlux(DataBuffer.class)
+        .subscribe(this);
+  }
+
+  @Override
+  protected void hookOnNext(DataBuffer rawEvent) {
+    var playerEvent = PlayerEvent.getRootAsPlayerEvent(rawEvent.asByteBuffer());
+
+    // register the player when it's connected
+    if (playerEvent.eventType() == Connected) {
+      var player = playerEvent.event(new Player());
+      var remotePlayer = new RemotePlayer(player.id(), player.name(), remotePlayerClient);
+
+      remotePlayers.put(remotePlayer.id, remotePlayer);
+      playersRepository.register(remotePlayer);
+    // deregister the player when it's disconnected
+    } else if (playerEvent.eventType() == Disconnected) {
+      var playerId = playerEvent.event(new PlayerId());
+      var id = playerId.id();
+
+      remotePlayers.remove(id);
+      playersRepository.disconnect(id);
+    }
+    DataBufferUtils.release(rawEvent);
+  }
+}
+----
+
+Game service can also listen to the new rooms in the same way.
+
+[source,java]
+----
+public class RemoteRoomsListener extends BaseSubscriber<DataBuffer> {
+
+  final String serviceId;
+  final RemoteRoomClient remoteRoomClient;
+
+  final PlayersRepository playersRepository;
+  final RoomsRepository roomsRepository;
+
+  final HashMap<String, RemoteRoom> remoteRooms;
+
+  public RemoteRoomsListener(
+      RSocketRequester rSocketRequester,
+      String serviceId,
+      PlayersRepository playersRepository,
+      RoomsRepository roomsRepository
+  ) {
+    // ...
+    rSocketRequester.route("game.rooms")
+        .metadata(serviceId, DESTINATION_ID_MIMETYPE)
+        .retrieveFlux(DataBuffer.class)
+        .subscribe(this);
+  }
+
+  public void hookOnNext(DataBuffer rawEvent) {
+    roomEvent = RoomEvent.getRootAsRoomEvent(rawEvent.asByteBuffer());
+    if (roomEvent.type() == Added) {
+      // The room was created, need to let everyone know, find the owner and the players
+      // and create a new room
+      final String roomId = roomEvent.id();
+      final Player owner = playersRepository.find(roomEvent.owner().id());
+      final Set<Player> players = new HashSet<>();
+      for (int i = 0; i < roomEvent.playersLength(); i++) {
+        final Player player = playersRepository.find(roomEvent.players(i).id());
+        players.add(player);
+      }
+
+      remoteRoom = new RemoteRoom(roomId, owner, players, remoteRoomClient);
+
+      remoteRooms.put(roomId, remoteRoom);
+      roomsRepository.add(remoteRoom);
+    } else if (roomEvent.type() == Updated) {
+      // The room was updated, find the owner and the players in the same way and
+      // update it.
+      // ...
+      remoteRoom = new RemoteRoom(roomId, owner, players, remoteRoomClient);
+
+      remoteRooms.replace(roomId, remoteRoom);
+      roomsRepository.update(remoteRoom);
+    } else if (roomEvent.type() == EventType.Removed) {
+      // the room was removed.
+      final String roomId = roomEvent.id();
+      remoteRooms.remove(roomId);
+      roomsRepository.remove(roomId);
+    }
+    DataBufferUtils.release(rawEvent);
+  }
+
+  @Override
+  protected void hookFinally(SignalType type) {
+    remoteRooms.keySet().forEach(roomsRepository::remove);
+  }
+}
+----
+
+Now that the discovery service is up and running, you and your friends can launch a local server, and start playing even if you're behind NAT. Bomberman game is a server mesh. Happy Playing!
 
 == Credits
 
